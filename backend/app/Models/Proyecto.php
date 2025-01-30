@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Tribunal;
 
 class Proyecto extends Model
 {
@@ -38,7 +39,9 @@ class Proyecto extends Model
         $this->tribunales()->attach($docenteId);
     }
 
-    public function tribunales() {
-        return $this->belongsToMany(Docente::class, 'tribunal', 'id_proyecto', 'id_docente');
+    public function tribunales()
+    {
+        return $this->hasMany(Tribunal::class, 'id_proyecto', 'id_proyecto')
+                ->where('rol', 'tribunal');
     }
 }

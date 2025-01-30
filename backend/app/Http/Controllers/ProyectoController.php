@@ -12,7 +12,7 @@ class ProyectoController extends Controller
      */
     public function index()
     {
-        $proyectos = Proyecto::with(['estudiante', 'tutor'])->get();
+        $proyectos = Proyecto::with(['estudiante', 'tutor','tribunales'])->get();
         return response()->json($proyectos);
     }
 
@@ -44,7 +44,7 @@ class ProyectoController extends Controller
      */
     public function show(string $id)
     {
-        $proyecto = Proyecto::with(['estudiante', 'tutor'])->find($id);
+        $proyecto = Proyecto::with(['estudiante', 'tutor','tribunales'])->find($id);
 
         if (!$proyecto) {
             return response()->json(['message' => 'Proyecto no encontrado'], 404);

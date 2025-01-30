@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\ProyectoController;
+use App\Http\Controllers\TribunalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,3 +25,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResource('estudiantes', EstudianteController::class);
 Route::apiResource('docentes', DocenteController::class);
 Route::apiResource('proyectos', ProyectoController::class);
+Route::apiResource('tribunal', TribunalController::class);
