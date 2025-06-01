@@ -1,0 +1,573 @@
+<template>
+    <aside
+      :class="[
+        'fixed inset-y-0 left-0 bg-white shadow-lg max-h-screen w-60 transform transition-transform duration-300 ease-in-out',
+        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+      ]"
+    >
+      <div class="flex flex-col justify-between h-full">
+        <div class="flex-grow overflow-y-auto">
+          <div class="px-4 py-6 text-center border-b">
+            <h1 class="text-xl font-bold leading-none text-primary-700">
+              <span class="text-primary-500">Mi</span> Aplicación
+            </h1>
+          </div>
+          <div class="p-4">
+            <ul class="space-y-1">
+              <li>
+                <router-link
+                  to="/dashboard"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/dashboard'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
+                  Dashboard
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/solicitar-tutoria"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/solicitar-tutoria'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                    />
+                  </svg>
+                  Solicitar Tutoría
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/gestionar-tutorias"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/gestionar-tutorias'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                    />
+                  </svg>
+                  Gestionar Tutorías
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/historial"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/historial'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Historial
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/buscar-tutor"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/buscar-tutor'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                    />
+                  </svg>
+                  Buscar Tutor
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/perfil-proyecto"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/perfil-proyecto'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Perfil Proyecto
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/correccion-observaciones"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/correccion-observaciones'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Correcciones Observaciones
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/entrega-borrador"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/entrega-borrador'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Entrega Borrador
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/seguimiento-proyecto"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/seguimiento-proyecto'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Seguimiento Proyecto
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/solicitud-tutoria-tutor"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/solicitud-tutoria-tutor'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Solicitud Tutoria Tutor
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/evaluacion-perfiles"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/evaluacion-perfiles'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Evaluación Perfiles
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/interfaz-observaciones-perfiles"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/interfaz-observaciones-perfiles'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Interfaz Observaciones Perfiles
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/evaluacion-borrador"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/evaluacion-borrador'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Evaluacion Borrador
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/interfaz-observaciones-borrador"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/interfaz-observaciones-borrador'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Interfaz Observaciones Borrador
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/notificacion-observaciones"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/notificacion-observaciones'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Notificacion Observaciones
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/evaluacion-defensa"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/evaluacion-defensa'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Evaluacion Defensa
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/asignacion-tribunal"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/asignacion-tribunal'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Asignacion Tribunal
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/asignacion-fecha-defensa"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/asignacion-fecha-defensa'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Asignacion Fecha Defensa
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/conclusion-proyecto"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/conclusion-proyecto'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Conclusion Proyecto
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/seguimiento-proyecto-real-tiempo"
+                  class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
+                  :class="[
+                    $route.path === '/seguimiento-proyecto-real-tiempo'
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Seguimiento Proyecto Real Tiempo
+                </router-link>
+              </li>
+            </ul>
+          </div>
+        </div>     
+      </div>
+    </aside>
+  </template>
+  
+  <script setup>
+  const props = defineProps({
+    isOpen: {
+      type: Boolean,
+      default: false,
+    },
+  });
+  
+  </script>
+  

@@ -1,0 +1,42 @@
+[
+    {
+      "id": "1",
+      "username": "estudiante1",
+      "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+      "email": "estudiante1@example.com",
+      "role": "estudiante",
+      "fullName": "Estudiante Ejemplo"
+    },
+    {
+      "id": "2",
+      "username": "tutor1",
+      "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+      "email": "tutor1@example.com",
+      "role": "tutor",
+      "fullName": "Tutor Ejemplo"
+    },
+    {
+      "id": "3",
+      "username": "secretaria1",
+      "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+      "email": "secretaria1@example.com",
+      "role": "secretaria",
+      "fullName": "Secretaria Ejemplo"
+    },
+    {
+      "id": "4",
+      "username": "director1",
+      "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+      "email": "director1@example.com",
+      "role": "director",
+      "fullName": "Director Ejemplo"
+    },
+    {
+      "id": "5",
+      "username": "tribunal1",
+      "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+      "email": "tribunal1@example.com",
+      "role": "tribunal",
+      "fullName": "Tribunal Ejemplo"
+    }
+  ]
