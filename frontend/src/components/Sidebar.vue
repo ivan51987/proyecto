@@ -80,7 +80,7 @@ const authStore = useAuthStore();
 console.log(authStore.user?.role);
 
 const allMenuItems = [
-  // Dashboard (común a todos)
+  // Común
   {
     to: "/dashboard",
     title: "Dashboard",
@@ -89,14 +89,7 @@ const allMenuItems = [
     permissions: [],
   },
 
-  // Opciones para ESTUDIANTE
-  {
-    to: "/presentar-tema",
-    title: "Presentar Tema",
-    icon: DocumentTextIcon,
-    roles: ["estudiante"],
-    permissions: ["presentarTema"],
-  },
+  // Estudiante
   {
     to: "/buscar-tutor",
     title: "Buscar Tutor",
@@ -105,187 +98,122 @@ const allMenuItems = [
     permissions: ["buscarTutor"],
   },
   {
-    to: "/perfil-proyecto",
-    title: "Perfil Proyecto",
+    to: "/enviar-solicitud",
+    title: "Enviar Solicitud de Tutoría",
+    icon: UserGroupIcon,
+    roles: ["estudiante"],
+    permissions: ["enviarSolicitudTutoria"],
+  },
+  {
+    to: "/registrar-fecha-inicio",
+    title: "Registrar Fecha Inicio Proyecto",
+    icon: CalendarIcon,
+    roles: ["estudiante"],
+    permissions: ["registrarFechaInicioProyecto"],
+  },
+  {
+    to: "/presentar-perfil",
+    title: "Presentar Perfil Proyecto",
     icon: DocumentTextIcon,
     roles: ["estudiante"],
-    permissions: [
-      "consultarObservacionesPerfil",
-      "corregirObservacionesPerfil",
-    ],
+    permissions: ["presentarPerfilProyecto"],
+  },
+  {
+    to: "/corregir-perfil",
+    title: "Corregir Observaciones Perfil",
+    icon: PencilSquareIcon,
+    roles: ["estudiante"],
+    permissions: ["corregirObservacionesPerfil"],
   },
   {
     to: "/entrega-borrador",
-    title: "Entrega Borrador",
+    title: "Entregar Borrador Proyecto",
     icon: DocumentArrowUpIcon,
     roles: ["estudiante"],
-    permissions: ["elaborarBorrador", "entregarBorradorTribunales"],
+    permissions: ["entregarBorradorProyecto"],
   },
   {
-    to: "/correccion-observaciones",
-    title: "Correcciones Observaciones",
+    to: "/corregir-borrador",
+    title: "Corregir Borrador Observaciones",
     icon: DocumentCheckIcon,
     roles: ["estudiante"],
-    permissions: [
-      "corregirObservacionesBorrador",
-      "reentregarBorradorCorregido",
-    ],
+    permissions: ["corregirBorradorObservaciones"],
   },
   {
-    to: "/historial",
-    title: "Historial",
-    icon: ClockIcon,
+    to: "/entregar-final",
+    title: "Entregar Borrador Final",
+    icon: DocumentDuplicateIcon,
     roles: ["estudiante"],
-    permissions: [
-      "recibirComprobante",
-      "consultarAprobacionTema",
-      "recibirAprobacionTribunales",
-    ],
+    permissions: ["entregarBorradorFinal"],
   },
 
-  // Opciones para TUTOR
+  // Tutor
   {
-    to: "/elaborar-borrador",
-    title: "Elaborar Borrador",
-    icon: DocumentTextIcon,
-    roles: ["tutor"],
-    permissions: ["elaborarBorrador"],
-  },
-  {
-    to: "/correccion-observaciones",
-    title: "Correcciones Observaciones",
-    icon: DocumentCheckIcon,
-    roles: ["tutor"],
-    permissions: ["corregirBorrador"],
-  },
-  {
-    to: "/perfil-proyecto",
-    title: "Perfil Proyecto",
-    icon: DocumentTextIcon,
-    roles: ["tutor"],
-    permissions: ["reentregarPerfilCorregido"],
-  },
-  {
-    to: "/gestionar-tutorias",
-    title: "Gestionar Tutorías",
-    icon: "AcademicCapIcon",
-    roles: ["tutor"],
-    permissions: [],
-  },
-  {
-    to: "/solicitud-tutoria-tutor",
-    title: "Solicitudes de Tutoría",
+    to: "/aceptar-solicitudes",
+    title: "Aceptar Solicitudes",
     icon: UserGroupIcon,
     roles: ["tutor"],
-    permissions: [],
-  },
-
-  // Opciones para SECRETARÍA
-  {
-    to: "/registrar-fecha",
-    title: "Registrar Fecha Inicio",
-    icon: CalendarIcon,
-    roles: ["secretaria"],
-    permissions: ["registrarFechaInicio"],
+    permissions: ["aceptarSolicitudTutoria"],
   },
   {
-    to: "/comprobantes",
-    title: "Comprobantes",
-    icon: DocumentDuplicateIcon,
-    roles: ["secretaria"],
-    permissions: ["recibirComprobante"],
+    to: "/guiar-estudiantes",
+    title: "Guiar Estudiantes",
+    icon: AcademicCapIcon,
+    roles: ["tutor"],
+    permissions: ["guiarEstudianteProyecto"],
   },
   {
-    to: "/aprobacion-tema",
-    title: "Aprobación de Temas",
-    icon: DocumentDuplicateIcon,
-    roles: ["secretaria"],
-    permissions: ["consultarAprobacionTema"],
-  },
-  {
-    to: "/aprobacion-tribunales",
-    title: "Aprobación Tribunales",
-    icon: UserGroupIcon,
-    roles: ["secretaria"],
-    permissions: ["recibirAprobacionTribunales"],
-  },
-
-  // Opciones para DIRECTOR
-  {
-    to: "/asignacion-fecha-defensa",
-    title: "Asignar Fecha Defensa",
-    icon: CalendarIcon,
-    roles: ["director"],
-    permissions: ["asignarFechaDefensa"],
-  },
-  {
-    to: "/aprobar-borrador",
-    title: "Aprobar Borrador",
+    to: "/evaluar-perfil",
+    title: "Evaluar Perfil Proyecto",
     icon: DocumentCheckIcon,
-    roles: ["director"],
-    permissions: ["aprobarBorrador"],
-  },
-  {
-    to: "/asignacion-tribunal",
-    title: "Asignar Tribunal",
-    icon: UserGroupIcon,
-    roles: ["director"],
-    permissions: [],
+    roles: ["tutor"],
+    permissions: ["evaluarPerfilProyecto"],
   },
 
-  // Opciones para TRIBUNAL
-  {
-    to: "/observaciones-perfil",
-    title: "Observaciones Perfil",
-    icon: DocumentDuplicateIcon,
-    roles: ["tribunal"],
-    permissions: ["recibirObservacionesPerfil"],
-  },
-  {
-    to: "/entrega-perfil-tribunales",
-    title: "Entrega Perfil",
-    icon: DocumentArrowUpIcon,
-    roles: ["tribunal"],
-    permissions: ["entregarPerfilTribunales"],
-  },
-  {
-    to: "/evaluacion-borrador",
-    title: "Evaluación Borrador",
-    icon: DocumentCheckIcon,
-    roles: ["tribunal"],
-    permissions: ["obtenerAprobacionBorrador"],
-  },
+  // Tribunal
   {
     to: "/observaciones-borrador",
     title: "Observaciones Borrador",
-    icon: DocumentDuplicateIcon,
+    icon: ExclamationCircleIcon,
     roles: ["tribunal"],
-    permissions: ["recibirObservacionesBorrador"],
+    permissions: ["proporcionarObservacionesBorrador"],
   },
   {
-    to: "/evaluacion-defensa",
-    title: "Evaluación Defensa",
+    to: "/notificar-observaciones",
+    title: "Notificar Observaciones",
+    icon: EnvelopeIcon,
+    roles: ["tribunal"],
+    permissions: ["notificarObservacionesEstudiante"],
+  },
+  {
+    to: "/evaluar-defensa",
+    title: "Evaluar Defensa Final",
     icon: AcademicCapIcon,
     roles: ["tribunal"],
-    permissions: [],
+    permissions: ["evaluarDefensaFinal"],
   },
 
-  // Opciones comunes
+  // Secretaría
   {
-    to: "/seguimiento-proyecto",
-    title: "Seguimiento Proyecto",
+    to: "/seguimiento-tiempo-real",
+    title: "Seguimiento en Tiempo Real",
     icon: ChartBarIcon,
-    roles: ["estudiante", "tutor", "director"],
-    permissions: [],
+    roles: ["secretaria"],
+    permissions: ["seguimientoTiempoReal"],
   },
+
+  // Director
   {
-    to: "/conclusion-proyecto",
-    title: "Conclusión Proyecto",
-    icon: FlagIcon,
-    roles: ["estudiante", "director"],
-    permissions: [],
+    to: "/asignar-tribunal",
+    title: "Asignar Tribunal Evaluador",
+    icon: UserGroupIcon,
+    roles: ["director"],
+    permissions: ["asignarTribunalEvaluador"],
   },
+
+  // Puedes agregar más ítems si el JSON tiene más permisos para director u otros roles
 ];
+
 
 const filteredMenuItems = computed(() => {
   const user = authStore.user;

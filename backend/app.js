@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 //cors
 app.use(cors({
-  origin: 'http://localhost:4000', // O usa "*" si estás en desarrollo
+  origin: '*', // O usa "*" si estás en desarrollo
   credentials: true
 }))
 // Rutas

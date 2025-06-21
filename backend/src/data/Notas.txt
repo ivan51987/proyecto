@@ -1,0 +1,14 @@
+director primero
+asignar tribunalasignar fecha y hora
+registrar conclusion del proyecto
+asignar fecha y hora de defensa
+generar informes y reportes
+
+2 estudiante
+
+secretaria
+fecha y hora de defensa
+ver asigancion de tribunal
+
+tribunal
+

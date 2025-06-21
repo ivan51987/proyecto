@@ -1,0 +1,9 @@
+{ "usuario": {
+    "permissions": [
+      "iniciarSesion",
+      "actualizarInformacionPersonal",
+      "visualizarHistorialAcciones"
+    ]
+  }
+
+}

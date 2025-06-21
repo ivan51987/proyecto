@@ -1,0 +1,47 @@
+{
+    "estudiante": {
+      "permissions": [
+        "presentarTema",
+        "recibirComprobante",
+        "consultarAprobacionTema",
+        "recibirAprobacionTribunales",
+        "buscarTutor",
+        "elaborarBorrador",
+        "entregarBorradorTribunales",
+        "corregirObservacionesBorrador",
+        "llevarBorradorSecretaria",
+        "consultarObservacionesPerfil",
+        "corregirObservacionesPerfil",
+        "reentregarBorradorCorregido"
+      ]
+    },
+    "tutor": {
+      "permissions": [
+        "elaborarBorrador", 
+        "corregirBorrador",
+        "reentregarPerfilCorregido"
+      ]
+    },
+    "secretaria": {
+      "permissions": [
+        "registrarFechaInicio",
+        "recibirComprobante",
+        "consultarAprobacionTema",
+        "recibirAprobacionTribunales"
+      ]
+    },
+    "director": {
+      "permissions": [
+        "asignarFechaDefensa",
+        "aprobarBorrador"
+      ]
+    },
+    "tribunal": {
+      "permissions": [
+        "recibirObservacionesPerfil",
+        "entregarPerfilTribunales",
+        "obtenerAprobacionBorrador",
+        "recibirObservacionesBorrador"
+      ]
+    }
+  }

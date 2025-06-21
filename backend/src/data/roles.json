@@ -1,47 +1,41 @@
 {
-    "estudiante": {
-      "permissions": [
-        "presentarTema",
-        "recibirComprobante",
-        "consultarAprobacionTema",
-        "recibirAprobacionTribunales",
-        "buscarTutor",
-        "elaborarBorrador",
-        "entregarBorradorTribunales",
-        "corregirObservacionesBorrador",
-        "llevarBorradorSecretaria",
-        "consultarObservacionesPerfil",
-        "corregirObservacionesPerfil",
-        "reentregarBorradorCorregido"
-      ]
-    },
-    "tutor": {
-      "permissions": [
-        "elaborarBorrador", 
-        "corregirBorrador",
-        "reentregarPerfilCorregido"
-      ]
-    },
-    "secretaria": {
-      "permissions": [
-        "registrarFechaInicio",
-        "recibirComprobante",
-        "consultarAprobacionTema",
-        "recibirAprobacionTribunales"
-      ]
-    },
-    "director": {
-      "permissions": [
-        "asignarFechaDefensa",
-        "aprobarBorrador"
-      ]
-    },
-    "tribunal": {
-      "permissions": [
-        "recibirObservacionesPerfil",
-        "entregarPerfilTribunales",
-        "obtenerAprobacionBorrador",
-        "recibirObservacionesBorrador"
-      ]
-    }
+  "estudiante": {
+    "permissions": [
+      "buscarTutor",
+      "enviarSolicitudTutoria",
+      "registrarFechaInicioProyecto",
+      "presentarPerfilProyecto",
+      "corregirObservacionesPerfil",
+      "entregarBorradorProyecto",
+      "corregirBorradorObservaciones",
+      "entregarBorradorFinal"
+    ]
+  },
+  "tutor": {
+    "permissions": [
+      "aceptarSolicitudTutoria",
+      "guiarEstudianteProyecto",
+      "evaluarPerfilProyecto"
+    ]
+  },
+  "tribunal": {
+    "permissions": [
+      "proporcionarObservacionesBorrador",
+      "notificarObservacionesEstudiante",
+      "evaluarDefensaFinal"
+    ]
+  },
+  "secretaria": {
+    "permissions": [
+      "seguimientoTiempoReal"
+    ]
+  },
+  "director": {
+    "permissions": [
+      "asignarTribunalEvaluador",
+      "asignarFechaHoraDefensa",
+      "generarReportes",
+      "registrarConclusionProyecto"
+    ]
   }
+}
