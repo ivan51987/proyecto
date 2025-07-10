@@ -3,10 +3,9 @@ const router = express.Router();
 
 // Importa y usa tus subrutas
 router.use('/auth', require('./auth'));
-router.use('/student', require('./student'));
-/*router.use('/tutor', require('./tutor'));
-router.use('/secretary', require('./secretary'));
-router.use('/director', require('./director'));
-router.use('/tribunal', require('./tribunal'));*/
-
+router.use('/estudiantes', require('./estudiantes'));
+router.use('/docentes', require('./docentes'));
+router.use('/secretaria', require('./secretaria'));
+router.use('/directores', require('./directores'));
+router.use('/', require('./materias'));
 module.exports = router;

@@ -1,0 +1,67 @@
+{
+  "info": {
+    "_postman_id": "f91e2f92-6c1c-4d13-a298-123456789abc",
+    "name": "Módulo Tribunal",
+    "description": "Colección de rutas para tribunal evaluador",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Proporcionar observaciones al borrador",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_tribunal}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tribunal/observaciones-borrador",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tribunal", "observaciones-borrador"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"borradorId\": 1,\n  \"observaciones\": \"Corregir formato de citas y bibliografía.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Notificar observaciones al estudiante",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_tribunal}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tribunal/notificar-estudiante",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tribunal", "notificar-estudiante"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estudianteId\": 5,\n  \"mensaje\": \"Se agregaron observaciones al borrador, revisar plataforma.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Evaluar defensa final",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_tribunal}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tribunal/evaluar-defensa",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tribunal", "evaluar-defensa"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"defensaId\": 2,\n  \"tribunalId\": 3,\n  \"nota\": 87,\n  \"comentario\": \"Muy buena exposición.\"\n}"
+        }
+      }
+    }
+  ]
+}

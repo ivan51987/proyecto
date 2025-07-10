@@ -1,0 +1,149 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- TABLA DE PROYECTOS
+CREATE TABLE proyectos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    titulo VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    estudiante_id UUID NOT NULL,
+    tutor_id UUID,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN (
+        'en_progreso', 'perfil_pendiente', 'perfil_observado', 'perfil_aprobado',
+        'borrador_pendiente', 'borrador_observado', 'borrador_aprobado',
+        'listo_defensa', 'concluido', 'aprobado', 'rechazado'
+    )),
+    fecha_inicio DATE NOT NULL,
+    fecha_conclusion DATE,
+    fecha_defensa DATE,
+    nota_final NUMERIC(5,2),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TABLA DE SOLICITUDES DE TUTORÍA
+CREATE TABLE solicitudes_tutoria (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    estudiante_id UUID NOT NULL,
+    tutor_id UUID NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('pendiente', 'aceptada', 'rechazada')),
+    fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_respuesta TIMESTAMP,
+    UNIQUE (estudiante_id, tutor_id)
+);
+
+-- TABLA DE PERFILES DE PROYECTO
+CREATE TABLE perfiles_proyecto (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    proyecto_id UUID REFERENCES proyectos(id) NOT NULL,
+    documento TEXT NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('pendiente', 'observado', 'aprobado', 'rechazado')),
+    observaciones TEXT,
+    version INTEGER DEFAULT 1,
+    fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_revision TIMESTAMP,
+    revisado_por UUID
+);
+
+-- TABLA DE BORRADORES
+CREATE TABLE borradores_proyecto (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    proyecto_id UUID REFERENCES proyectos(id) NOT NULL,
+    documento TEXT NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN (
+        'entregado', 'observado', 'corregido', 'aprobado', 'rechazado'
+    )),
+    observaciones TEXT,
+    version VARCHAR(20) NOT NULL,
+    fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_revision TIMESTAMP,
+    revisado_por UUID
+);
+
+-- TABLA DE DEFENSAS
+CREATE TABLE defensas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    proyecto_id UUID REFERENCES proyectos(id) NOT NULL UNIQUE,
+    fecha DATE NOT NULL,
+    hora TIME NOT NULL,
+    lugar VARCHAR(100) NOT NULL,
+    estado VARCHAR(20) DEFAULT 'programada' CHECK (estado IN (
+        'programada', 'realizada', 'cancelada', 'aprobada', 'reprobada'
+    )),
+    nota_final NUMERIC(5,2),
+    acta TEXT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TABLA DE EVALUACIONES
+CREATE TABLE evaluaciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    proyecto_id UUID REFERENCES proyectos(id) NOT NULL,
+    evaluador_id UUID NOT NULL,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('perfil', 'borrador', 'defensa')),
+    criterio VARCHAR(100) NOT NULL,
+    puntuacion INTEGER CHECK (puntuacion BETWEEN 1 AND 10),
+    comentarios TEXT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TABLA DE TRIBUNAL
+CREATE TABLE proyecto_tribunal (
+    proyecto_id UUID REFERENCES proyectos(id),
+    usuario_id UUID,
+    rol VARCHAR(20) CHECK (rol IN ('presidente', 'secretario', 'vocal')),
+    PRIMARY KEY (proyecto_id, usuario_id)
+);
+
+-- TABLA DE HISTORIAL
+CREATE TABLE historial_acciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID,
+    proyecto_id UUID REFERENCES proyectos(id),
+    accion TEXT NOT NULL,
+    detalles TEXT,
+    entidad_afectada VARCHAR(50),
+    entidad_id UUID,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TABLA DE NOTIFICACIONES
+CREATE TABLE notificaciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID NOT NULL,
+    mensaje TEXT NOT NULL,
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN (
+        'observacion', 'aprobacion', 'solicitud', 'recordatorio', 'general'
+    )),
+    leido BOOLEAN DEFAULT FALSE,
+    fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    relacion_id UUID,
+    relacion_tipo VARCHAR(50)
+);
+
+-- Proyectos
+CREATE INDEX idx_proyectos_estudiante ON proyectos(estudiante_id);
+CREATE INDEX idx_proyectos_tutor ON proyectos(tutor_id);
+CREATE INDEX idx_proyectos_estado ON proyectos(estado);
+CREATE INDEX idx_proyectos_fecha ON proyectos(fecha_inicio);
+
+-- Tutorías
+CREATE INDEX idx_solicitudes_estudiante ON solicitudes_tutoria(estudiante_id);
+CREATE INDEX idx_solicitudes_tutor ON solicitudes_tutoria(tutor_id);
+CREATE INDEX idx_solicitudes_estado ON solicitudes_tutoria(estado);
+
+-- Documentos
+CREATE INDEX idx_perfiles_proyecto ON perfiles_proyecto(proyecto_id);
+CREATE INDEX idx_perfiles_estado ON perfiles_proyecto(estado);
+CREATE INDEX idx_borradores_proyecto ON borradores_proyecto(proyecto_id);
+CREATE INDEX idx_borradores_estado ON borradores_proyecto(estado);
+
+-- Evaluación y defensa
+CREATE INDEX idx_defensas_proyecto ON defensas(proyecto_id);
+CREATE INDEX idx_defensas_fecha ON defensas(fecha);
+CREATE INDEX idx_evaluaciones_proyecto ON evaluaciones(proyecto_id);
+CREATE INDEX idx_evaluaciones_tipo ON evaluaciones(tipo);
+
+-- Historial y notificaciones
+CREATE INDEX idx_historial_proyecto ON historial_acciones(proyecto_id);
+CREATE INDEX idx_historial_usuario ON historial_acciones(usuario_id);
+CREATE INDEX idx_notificaciones_usuario ON notificaciones(usuario_id);
+CREATE INDEX idx_notificaciones_leido ON notificaciones(leido);

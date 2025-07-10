@@ -1,0 +1,65 @@
+{
+  "info": {
+    "_postman_id": "f55b2372-beb3-42fc-a25d-1234567890ab",
+    "name": "Módulo Director",
+    "description": "Colección de rutas del Director del sistema de gestión de proyectos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Registrar conclusión del proyecto",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_director}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/directores/registrar-conclusion", "host": ["{{base_url}}"], "path": ["api", "directores", "registrar-conclusion"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"proyectoId\": 1,\n  \"fechaConclusion\": \"2025-08-15\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Asignar fecha y hora de defensa",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_director}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/directores/asignar-defensa", "host": ["{{base_url}}"], "path": ["api", "directores", "asignar-defensa"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"proyectoId\": 1,\n  \"fecha\": \"2025-08-20\",\n  \"hora\": \"10:00\",\n  \"lugar\": \"Aula 302\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Asignar tribunal evaluador",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_director}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/directores/asignar-tribunal", "host": ["{{base_url}}"], "path": ["api", "directores", "asignar-tribunal"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"defensaId\": 1,\n  \"tribunalIds\": [2, 3, 4]\n}"
+        }
+      }
+    },
+    {
+      "name": "Generar reporte de proyectos concluidos",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_director}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/directores/generar-reporte", "host": ["{{base_url}}"], "path": ["api", "directores", "generar-reporte"] }
+      }
+    }
+  ]
+}

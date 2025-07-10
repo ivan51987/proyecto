@@ -1,0 +1,120 @@
+{
+  "info": {
+    "_postman_id": "e5e6c66d-902e-4317-86c9-123456789abc",
+    "name": "Módulo Estudiante",
+    "description": "Colección de rutas del estudiante para gestión de proyecto",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Buscar tutores disponibles",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/buscar-tutores", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "buscar-tutores"] }
+      }
+    },
+    {
+      "name": "Enviar solicitud de tutoría",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/enviar-solicitud", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "enviar-solicitud"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "Crear proyecto",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/crear-proyecto", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "crear-proyecto"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Sistema de monitoreo\",\n  \"descripcion\": \"App web con sensores\",\n  \"fecha_inicio\": \"2025-06-01\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Presentar perfil del proyecto",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/presentar-perfil", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "presentar-perfil"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"proyectoId\": 1,\n  \"documento\": \"http://example.com/perfil.pdf\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Corregir perfil del proyecto",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/corregir-perfil", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "corregir-perfil"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"perfilId\": 1,\n  \"nuevoDocumento\": \"http://example.com/perfil-corregido.pdf\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Entregar borrador del proyecto",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/entregar-borrador", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "entregar-borrador"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"proyectoId\": 1,\n  \"documento\": \"http://example.com/borrador.pdf\",\n  \"version\": \"v1.0\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Corregir borrador del proyecto",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/corregir-borrador", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "corregir-borrador"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"borradorId\": 1,\n  \"documentoCorregido\": \"http://example.com/borrador-v2.pdf\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Ver historial de acciones",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_estudiante}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/estudiantes/historial", "host": ["{{base_url}}"], "path": ["api", "estudiantes", "historial"] }
+      }
+    }
+  ]
+}

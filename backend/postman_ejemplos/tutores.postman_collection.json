@@ -1,0 +1,62 @@
+{
+  "info": {
+    "_postman_id": "39b8c8e4-23ef-4d58-922e-123456789abc",
+    "name": "Módulo Tutores",
+    "description": "Colección de rutas para tutores del sistema",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Aceptar o rechazar solicitud de tutoría",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_tutor}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tutores/solicitud",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tutores", "solicitud"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"solicitudId\": 3,\n  \"estado\": \"aceptado\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Listar proyectos asignados",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_tutor}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tutores/proyectos",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tutores", "proyectos"]
+        }
+      }
+    },
+    {
+      "name": "Evaluar perfil del proyecto",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_tutor}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tutores/evaluar-perfil",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tutores", "evaluar-perfil"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"perfilId\": 2,\n  \"estado\": \"aprobado\",\n  \"observaciones\": \"Cumple todos los requisitos.\"\n}"
+        }
+      }
+    }
+  ]
+}

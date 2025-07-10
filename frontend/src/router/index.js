@@ -1,167 +1,180 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 
 // Vistas principales
-import Login from '../views/Login.vue'
-import Dashboard from '../views/Dashboard.vue'
+import Login from "../views/Login.vue";
+import Dashboard from "../views/Dashboard.vue";
 
 // Estudiantes
-import SolicitudTutoria from '../components/SolicitudTutoria.vue'
-import ActualizarPerfil from '../components/ActualizarPerfil.vue'
-import HistorialAcciones from '../components/HistorialAcciones.vue'
-import BuscarTutor from '../components/BuscarTutor.vue'
-import PerfilProyecto from '../components/PerfilProyecto.vue'
-import CorreccionObservaciones from '../components/CorreccionObservaciones.vue'
-import EntregaBorrador from '../components/EntregaBorrador.vue'
-import InterfazSeguimientoProyecto from '../components/InterfazSeguimientoProyecto.vue'
+import SolicitudTutoria from "../components/SolicitudTutoria.vue";
+import ActualizarPerfil from "../components/ActualizarPerfil.vue";
+import HistorialAcciones from "../components/HistorialAcciones.vue";
+import BuscarTutor from "../components/BuscarTutor.vue";
+import PerfilProyecto from "../components/PerfilProyecto.vue";
+import CorreccionObservaciones from "../components/CorreccionObservaciones.vue";
+import EntregaBorrador from "../components/EntregaBorrador.vue";
+import SeguimientoProyecto from "../components/SeguimientoProyecto.vue";
 
-// Tutores
-import SolicitudTutoriaTutor from '../components/SolicitudTutoriaTutor.vue'
-import GestionTutorias from '../components/GestionTutorias.vue'
-import EvaluacionPerfiles from '../components/EvaluacionPerfiles.vue'
-import InterfazObservacionesPerfil from '../components/InterfazObservacionesPerfil.vue'
-import EvaluacionBorrador from '../components/EvaluacionBorrador.vue'
-import InterfazObservacionesBorrador from '../components/InterfazObservacionesBorrador.vue'
+// docentes
+import SolicitudTutoriaTutor from "../components/docente/SolicitudTutoriaTutor.vue";
+import GestionTutorias from "../components/docente/GestionTutorias.vue";
+import EvaluacionPerfiles from "../components/docente/EvaluacionPerfiles.vue";
+import ObservacionesPerfil from "../components/docente/ObservacionesPerfil.vue";
+import EvaluacionBorrador from "../components/docente/EvaluacionBorrador.vue";
+import ObservacionesBorrador from "../components/docente/ObservacionesBorrador.vue";
+import EvaluacionDefensa from "../components/docente/EvaluacionDefensa.vue";
+import ConclusionProyecto from "../components/docente/ConclusionProyecto.vue";
+import SeguimientoProyectoRealTime from "../components/director/SeguimientoProyectoRealTime.vue";
 
-// Tribunales
-import NotificacionObservaciones from '../components/NotificacionObservaciones.vue'
-import EvaluacionDefensa from '../components/EvaluacionDefensa.vue'
-import AsignacionTribunal from '../components/AsignacionTribunal.vue'
-import AsignacionFechaDefensa from '../components/AsignacionFechaDefensa.vue'
-import ConclusionProyecto from '../components/ConclusionProyecto.vue'
-import SeguimientoProyectoRealTime from '../components/SeguimientoProyectoRealTime.vue'
+//Director
+import AsignacionTribunal from "../components/director/AsignacionTribunal.vue";
+import RegistrarConclusion from "../components/director/RegistrarConclusion.vue";
+import Reportes from "../components/director/Reportes.vue";
+import CronogramaDefensas from "../components/director/CronogramaDefensas.vue";
 
+import NotificacionObservaciones from "../components/NotificacionObservaciones.vue";
 const routes = [
   {
-    path: '/',
-    redirect: '/login'
+    path: "/",
+    redirect: "/login",
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: Login
+    path: "/login",
+    name: "Login",
+    component: Login,
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard,
   },
 
   // Estudiante
   {
-    path: '/solicitar-tutoria',
-    name: 'SolicitudTutoria',
-    component: SolicitudTutoria
+    path: "/solicitar-tutoria",
+    name: "SolicitudTutoria",
+    component: SolicitudTutoria,
   },
   {
-    path: '/perfil',
-    name: 'ActualizarPerfil',
-    component: ActualizarPerfil
+    path: "/perfil",
+    name: "ActualizarPerfil",
+    component: ActualizarPerfil,
   },
   {
-    path: '/historial',
-    name: 'HistorialAcciones',
-    component: HistorialAcciones
+    path: "/historial",
+    name: "HistorialAcciones",
+    component: HistorialAcciones,
   },
   {
-    path: '/buscar-tutor',
-    name: 'BuscarTutor',
-    component: BuscarTutor
+    path: "/buscar-tutor",
+    name: "BuscarTutor",
+    component: BuscarTutor,
   },
   {
-    path: '/perfil-proyecto',
-    name: 'PerfilProyecto',
-    component: PerfilProyecto
+    path: "/perfil-proyecto",
+    name: "PerfilProyecto",
+    component: PerfilProyecto,
   },
   {
-    path: '/correccion-observaciones',
-    name: 'CorreccionObservaciones',
-    component: CorreccionObservaciones
+    path: "/correccion-observaciones",
+    name: "CorreccionObservaciones",
+    component: CorreccionObservaciones,
   },
   {
-    path: '/entrega-borrador',
-    name: 'EntregaBorrador',
-    component: EntregaBorrador
+    path: "/entrega-borrador",
+    name: "EntregaBorrador",
+    component: EntregaBorrador,
   },
   {
-    path: '/seguimiento-proyecto',
-    name: 'InterfazSeguimientoProyecto',
-    component: InterfazSeguimientoProyecto
-  },
-
-  // Tutor
-  {
-    path: '/aceptar-solicitudes',
-    name: 'SolicitudTutoriaTutor',
-    component: SolicitudTutoriaTutor
-  },
-  {
-    path: '/gestionar-tutorias',
-    name: 'GestionTutorias',
-    component: GestionTutorias
-  },
-  {
-    path: '/evaluar-perfil',
-    name: 'EvaluacionPerfiles',
-    component: EvaluacionPerfiles
-  },
-  {
-    path: '/interfaz-observaciones-perfiles',
-    name: 'InterfazObservacionesPerfil',
-    component: InterfazObservacionesPerfil
-  },
-  {
-    path: '/evaluacion-borrador',
-    name: 'EvaluacionBorrador',
-    component: EvaluacionBorrador
-  },
-  {
-    path: '/interfaz-observaciones-borrador',
-    name: 'InterfazObservacionesBorrador',
-    component: InterfazObservacionesBorrador
+    path: "/seguimiento-proyecto",
+    name: "SeguimientoProyecto",
+    component: SeguimientoProyecto,
   },
 
-  // Tribunal
+  // docente
   {
-    path: '/notificacion-observaciones',
-    name: 'NotificacionObservaciones',
-    component: NotificacionObservaciones
+    path: "/aceptar-solicitudes",
+    name: "SolicitudTutoriaTutor",
+    component: SolicitudTutoriaTutor,
   },
   {
-    path: '/evaluacion-defensa',
-    name: 'EvaluacionDefensa',
-    component: EvaluacionDefensa
+    path: "/gestionar-tutorias",
+    name: "GestionTutorias",
+    component: GestionTutorias,
   },
   {
-    path: '/asignacion-tribunal',
-    name: 'AsignacionTribunal',
-    component: AsignacionTribunal
+    path: "/evaluar-perfil",
+    name: "EvaluacionPerfiles",
+    component: EvaluacionPerfiles,
   },
   {
-    path: '/asignacion-fecha-defensa',
-    name: 'AsignacionFechaDefensa',
-    component: AsignacionFechaDefensa
+    path: "/observaciones-perfiles",
+    name: "ObservacionesPerfil",
+    component: ObservacionesPerfil,
   },
   {
-    path: '/conclusion-proyecto',
-    name: 'ConclusionProyecto',
-    component: ConclusionProyecto
+    path: "/observaciones-borrador",
+    name: "ObservacionesBorrador",
+    component: ObservacionesBorrador,
   },
   {
-    path: '/seguimiento-proyecto-real-tiempo',
-    name: 'SeguimientoProyectoRealTime',
-    component: SeguimientoProyectoRealTime
+    path: "/evaluar-borrador",
+    name: "EvaluacionBorrador",
+    component: EvaluacionBorrador,
+  },  
+  {
+    path: "/evaluacion-defensa",
+    name: "EvaluacionDefensa",
+    component: EvaluacionDefensa,
+  },
+  {
+    path: "/notificacion-observaciones",
+    name: "NotificacionObservaciones",
+    component: NotificacionObservaciones,
+  },
+
+  // director
+  {
+    path: "/asignar-tribunal",
+    name: "AsignarTribunal",
+    component: AsignacionTribunal,
+  },
+  {
+    path: "/cronograma-defensas",
+    name: "CronogramaDefensas",
+    component: CronogramaDefensas,
+  },
+  {
+    path: "/registrar-conclusion",
+    name: "RegistrarConclusion",
+    component: RegistrarConclusion,
+  },
+  {
+    path: "/conclusion-proyecto",
+    name: "ConclusionProyecto",
+    component: ConclusionProyecto,
+  },
+
+  {
+    path: "/generar-reporte",
+    name: "GenerarReporte",
+    component: Reportes,
+  },
+  {
+    path: "/seguimiento-proyecto-real-tiempo",
+    name: "SeguimientoProyectoRealTime",
+    component: SeguimientoProyectoRealTime,
   },
 
   // Ruta no encontrada
   {
-    path: '/:pathMatch(.*)*',
-    redirect: '/login'
-  }
-]
+    path: "/:pathMatch(.*)*",
+    redirect: "/login",
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
-export default router
+export default router;

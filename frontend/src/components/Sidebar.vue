@@ -1,10 +1,8 @@
 <template>
-  <aside
-    :class="[
-      'fixed inset-y-0 left-0 bg-white shadow-lg max-h-screen w-60 transform transition-transform duration-300 ease-in-out',
-      isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-    ]"
-  >
+  <aside :class="[
+    'fixed inset-y-0 left-0 bg-white shadow-lg max-h-screen w-60 transform transition-transform duration-300 ease-in-out',
+    isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+  ]">
     <div class="flex flex-col justify-between h-full">
       <div class="flex-grow overflow-y-auto">
         <div class="px-4 py-6 text-center border-b">
@@ -15,15 +13,11 @@
         <div class="p-4">
           <ul class="space-y-1">
             <li v-for="item in filteredMenuItems" :key="item.to">
-              <router-link
-                :to="item.to"
-                class="flex items-center rounded-xl font-bold text-sm py-3 px-4"
-                :class="[
-                  $route.path === item.to
-                    ? 'bg-primary-100 text-primary-900'
-                    : 'text-gray-600 hover:bg-gray-100',
-                ]"
-              >
+              <router-link :to="item.to" class="flex items-center rounded-xl font-bold text-sm py-3 px-4" :class="[
+                $route.path === item.to
+                  ? 'bg-primary-100 text-primary-900'
+                  : 'text-gray-600 hover:bg-gray-100',
+              ]">
                 <component :is="item.icon" class="h-5 w-5 mr-3" />
                 {{ item.title }}
               </router-link>
@@ -50,7 +44,7 @@ import {
   ClockIcon, // Historial
   CalendarIcon, // Fechas, Calendario
   DocumentDuplicateIcon, // Aprobación de temas
- // DocumentDuplicateIcon, // Observaciones, Listados
+  // DocumentDuplicateIcon, // Observaciones, Listados
   ChartBarIcon, // Seguimiento
   FlagIcon, // Conclusión
   EnvelopeIcon, // Notificaciones
@@ -67,6 +61,9 @@ import {
   ChatBubbleLeftRightIcon, // Comunicaciones
   WrenchScrewdriverIcon, // Ajustes, Configuraciones
   ArrowTrendingUpIcon, // Progreso, Seguimiento
+  ClipboardDocumentCheckIcon, 
+  CalendarDaysIcon,                     
+  DocumentChartBarIcon       
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
@@ -85,32 +82,26 @@ const allMenuItems = [
     to: "/dashboard",
     title: "Dashboard",
     icon: HomeIcon,
-    roles: ["estudiante", "tutor", "secretaria", "director", "tribunal"],
+    roles: ["estudiante", "docente", "secretaria", "director"],
     permissions: [],
   },
 
   // Estudiante
   {
-    to: "/buscar-tutor",
-    title: "Buscar Tutor",
-    icon: UserIcon,
-    roles: ["estudiante"],
-    permissions: ["buscarTutor"],
-  },
-  {
-    to: "/enviar-solicitud",
-    title: "Enviar Solicitud de Tutoría",
-    icon: UserGroupIcon,
-    roles: ["estudiante"],
-    permissions: ["enviarSolicitudTutoria"],
-  },
-  {
-    to: "/registrar-fecha-inicio",
-    title: "Registrar Fecha Inicio Proyecto",
+    to: "/perfil-proyecto",
+    title: "Registrar Proyecto",
     icon: CalendarIcon,
     roles: ["estudiante"],
     permissions: ["registrarFechaInicioProyecto"],
   },
+  {
+    to: "/buscar-tutor",
+    title: "Buscar Tutor",
+    icon: DocumentTextIcon,
+    roles: ["estudiante"],
+    permissions: ["buscarTutor"],
+  },
+
   {
     to: "/presentar-perfil",
     title: "Presentar Perfil Proyecto",
@@ -147,52 +138,43 @@ const allMenuItems = [
     permissions: ["entregarBorradorFinal"],
   },
 
-  // Tutor
+  // Docente
   {
     to: "/aceptar-solicitudes",
     title: "Aceptar Solicitudes",
     icon: UserGroupIcon,
-    roles: ["tutor"],
+    roles: ["docente"],
     permissions: ["aceptarSolicitudTutoria"],
   },
   {
-    to: "/guiar-estudiantes",
-    title: "Guiar Estudiantes",
+    to: "/gestionar-tutorias",
+    title: "Gestionar Tutorías",
     icon: AcademicCapIcon,
-    roles: ["tutor"],
+    roles: ["docente"],
     permissions: ["guiarEstudianteProyecto"],
-  },
+  },    
   {
     to: "/evaluar-perfil",
     title: "Evaluar Perfil Proyecto",
     icon: DocumentCheckIcon,
-    roles: ["tutor"],
+    roles: ["docente"],
     permissions: ["evaluarPerfilProyecto"],
   },
-
-  // Tribunal
   {
-    to: "/observaciones-borrador",
-    title: "Observaciones Borrador",
-    icon: ExclamationCircleIcon,
-    roles: ["tribunal"],
+    to: "/evaluar-borrador",
+    title: "Evaluar Borrador Proyecto",
+    icon: AcademicCapIcon,
+    roles: ["docente"],
     permissions: ["proporcionarObservacionesBorrador"],
   },
   {
-    to: "/notificar-observaciones",
-    title: "Notificar Observaciones",
-    icon: EnvelopeIcon,
-    roles: ["tribunal"],
-    permissions: ["notificarObservacionesEstudiante"],
-  },
-  {
-    to: "/evaluar-defensa",
-    title: "Evaluar Defensa Final",
+    to: "/evaluacion-defensa",
+    title: "Evaluar Defensa",
     icon: AcademicCapIcon,
-    roles: ["tribunal"],
+    roles: ["docente"],
     permissions: ["evaluarDefensaFinal"],
   },
-
+  
   // Secretaría
   {
     to: "/seguimiento-tiempo-real",
@@ -201,14 +183,56 @@ const allMenuItems = [
     roles: ["secretaria"],
     permissions: ["seguimientoTiempoReal"],
   },
+  {
+    to: "/notificacion-observaciones",
+    title: "Notificar Observaciones",
+    icon: EnvelopeIcon,
+    roles: ["docente"],
+    permissions: ["notificarObservacionesEstudiante"],
+  },
 
   // Director
   {
     to: "/asignar-tribunal",
-    title: "Asignar Tribunal Evaluador",
-    icon: UserGroupIcon,
+    title: "Asignar Tribunal",
+    icon: ClipboardDocumentCheckIcon, // Representa asignaciones o aprobaciones
     roles: ["director"],
     permissions: ["asignarTribunalEvaluador"],
+  },
+  {
+    to: "/cronograma-defensas",
+    title: "Defensas",
+    icon: CalendarDaysIcon, // Representa fechas o cronogramas
+    roles: ["director"],
+    permissions: ["asignarFechaHoraDefensa"],
+  },
+  {
+    to: "/registrar-conclusion",
+    title: "Registrar Conclusión",
+    icon: PencilSquareIcon, // Representa escritura o edición
+    roles: ["director"],
+    permissions: ["registrarConclusionProyecto"],
+  },
+  {
+    to: "/conclusion-proyecto",
+    title: "Conclusión Proyecto",
+    icon: PencilSquareIcon, // Representa escritura o edición
+    roles: ["director"],
+    permissions: ["registrarConclusionProyecto"],
+  },
+  {
+    to: "/generar-reporte",
+    title: "Generar Reporte",
+    icon: DocumentChartBarIcon, // Representa gráficos o reportes
+    roles: ["director"],
+    permissions: ["generarReportes"],
+  },
+   {
+    to: "/seguimiento-proyecto-real-tiempo",
+    title: "Seguimiento Proyecto Real Tiempo",
+    icon: DocumentChartBarIcon, // Representa gráficos o reportes
+    roles: ["director"],
+    permissions: ["generarReportes"],
   },
 
   // Puedes agregar más ítems si el JSON tiene más permisos para director u otros roles

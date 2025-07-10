@@ -11,18 +11,15 @@
       "entregarBorradorFinal"
     ]
   },
-  "tutor": {
+  "docente": {
     "permissions": [
       "aceptarSolicitudTutoria",
       "guiarEstudianteProyecto",
-      "evaluarPerfilProyecto"
-    ]
-  },
-  "tribunal": {
-    "permissions": [
+      "evaluarPerfilProyecto",
       "proporcionarObservacionesBorrador",
       "notificarObservacionesEstudiante",
-      "evaluarDefensaFinal"
+      "evaluarDefensaFinal",
+      "solicitudProyectoTutoria"
     ]
   },
   "secretaria": {
