@@ -155,7 +155,7 @@ exports.listarProyectosSolicitudTutoria = async (req, res) => {
                 email: estudiante.email,
                 carrera: estudiante.carrera,
               }
-            : null, 
+            : null,
         };
       }
     );
@@ -262,6 +262,7 @@ exports.listarProyectosHistorialObservar = async (req, res) => {
           (user) => user.id === proyecto.tutor_id && user.role === "docente"
         );
 
+        // Armar observaciones con nombre de docente
         const observacionesHistorialConNombre =
           proyecto.observacioneshistorial.map((obs) => {
             const docente = usersData.find(
@@ -273,9 +274,29 @@ exports.listarProyectosHistorialObservar = async (req, res) => {
             };
           });
 
+        // Eliminar campo original
+        delete proyecto.observacioneshistorial;
+
+        // Identificar la última acción (por fecha)
+        const ultimaAccion = observacionesHistorialConNombre.reduce(
+          (latest, obs) =>
+            new Date(obs.fecha) > new Date(latest.fecha) ? obs : latest
+        );
+
+        // Filtrar observaciones por:
+        // 1. Que el docente haya corregido
+        // 2. Que coincidan con la última acción
+        const observacionesFiltradas = observacionesHistorialConNombre.filter(
+          (obs) =>
+            obs.docente_id === req.user.id &&
+            obs.corregido === true &&
+            obs.accion === ultimaAccion.accion
+        );
+
         return {
           ...proyecto,
-          observacionesHistorial: observacionesHistorialConNombre,
+          estado_perfil: proyecto.estado_perfil || "Sin perfil",
+          observacionesHistorial: observacionesFiltradas,
           estudiante: estudiante
             ? {
                 nombre_estudiante: estudiante.fullName,
@@ -291,6 +312,7 @@ exports.listarProyectosHistorialObservar = async (req, res) => {
         };
       }
     );
+
     res.json(proyectosConEstudiante);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -515,9 +537,10 @@ exports.listarProyectosAprobadorBorrador = async (req, res) => {
     );
 
     if (id_proyecto_borrador.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "No se encontraron proyectos asignados al aprobador." });
+      return res.status(404).json({
+        success: false,
+        message: "No se encontraron proyectos asignados al aprobador.",
+      });
     }
 
     const proyectoId = id_proyecto_borrador.rows[0].proyecto_id;
@@ -553,7 +576,7 @@ exports.listarProyectosAprobadorBorrador = async (req, res) => {
             ...proyecto,
             estudiante: estudiante
               ? {
-                  nombre_estudiante: estudiante.fullName
+                  nombre_estudiante: estudiante.fullName,
                 }
               : null,
           };
@@ -562,13 +585,13 @@ exports.listarProyectosAprobadorBorrador = async (req, res) => {
 
       return res.json(proyectosConEstudiante);
     } else {
-      return res
-        .status(404)
-        .json({ success: false, message: "Falta la aprobación de todos los tribunales para continuar." });
+      return res.status(404).json({
+        success: false,
+        message: "Falta la aprobación de todos los tribunales para continuar.",
+      });
     }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
-
