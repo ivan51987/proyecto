@@ -151,7 +151,7 @@ const tutoriaService = {
       throw error;
     }
   },
-  //registrar evaluacion de borrador de proyecto
+
   async registrarEvaluacionBorrador(payload) {
     const token = localStorage.getItem("token");
      
@@ -201,6 +201,28 @@ const tutoriaService = {
       throw error;
     }
   },
+
+  async  lsitarProyectosParaEvaluarDefensa(){
+    try {
+      const token =localStorage.getItem("token");
+      const response= await fetch(
+        `${API_CONFIG.BASE_URL}/docentes/proyectos-aprobador-borrador`,
+        {
+          method:"GET",
+          headers:{
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }
+        }
+      )
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error en listar proyectos para evaluar", error.message);
+      throw error
+    }
+  }
 };
 
 export default tutoriaService;

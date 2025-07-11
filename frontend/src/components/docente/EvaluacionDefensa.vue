@@ -195,10 +195,12 @@ const filtroBusqueda = ref('');
 
 const borradores = ref([]);
 
-const listarProyectosDefender=()=>{
+const listarProyectosDefender=async()=>{
   try {
-    const response = await datosService.listarProyectosHistorialObservarBorrador();
+    const response = await datosService.lsitarProyectosParaEvaluarDefensa();
     borradores.value = response;
+    console.log(borradores);
+    
   } catch (error) {
     console.error('Error al cargar los borradores:', error);
   }
@@ -206,13 +208,16 @@ const listarProyectosDefender=()=>{
 
 const borradoresFiltrados = computed(() => {
   const texto = filtroBusqueda.value.toLowerCase().trim();
+  const lista = Array.isArray(borradores.value) ? borradores.value : [];
+
   return texto
-    ? borradores.value.filter(b =>
+    ? lista.filter(b =>
         b.titulo.toLowerCase().includes(texto) ||
         b.estudiante.nombre_estudiante.toLowerCase().includes(texto)
       )
-    : borradores.value;
+    : lista;
 });
+
 
 const itemsPorPagina = 3;
 const paginaActual = ref(1);
@@ -298,5 +303,8 @@ const guardarEvaluacion = async () => {
   }
 };
 
+onMounted(() => {
+  listarProyectosDefender();
+});
  
 </script>
