@@ -229,7 +229,7 @@ import { useAuthStore } from "../stores/useAuthStore"
 import logo from "../assets/logo.png";
 const router = useRouter();
 const authStore = useAuthStore()
-const username = ref('tutor1')
+const username = ref('')
 const password = ref("password123");
 const showPassword = ref(false);
 const rememberMe = ref(false);

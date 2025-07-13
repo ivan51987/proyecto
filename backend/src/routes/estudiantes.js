@@ -12,6 +12,7 @@ router.post("/presentar-perfil", auth, roles("presentarPerfilProyecto"), upload.
 router.put("/corregir-perfil", auth, roles("corregirObservacionesPerfil"), controller.corregirPerfil);
 router.post("/entregar-borrador", auth, roles("entregarBorradorProyecto"), controller.entregarBorrador);
 router.put("/corregir-borrador", auth, roles("corregirBorradorObservaciones"), controller.corregirBorrador);
-router.get("/historial", auth, controller.historialAcciones); // opcional sin roles
+router.get("/historial", auth, controller.historialAcciones); 
+router.get("/proyecto-registrado", auth, controller.proyectoRegistrado);
 
 module.exports = router;

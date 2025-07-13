@@ -151,10 +151,10 @@ exports.listarProyectosSolicitudTutoria = async (req, res) => {
           ...proyecto,
           estudiante: estudiante
             ? {
-                nombre_estudiante: estudiante.fullName,
-                email: estudiante.email,
-                carrera: estudiante.carrera,
-              }
+              nombre_estudiante: estudiante.fullName,
+              email: estudiante.email,
+              carrera: estudiante.carrera,
+            }
             : null,
         };
       }
@@ -196,15 +196,15 @@ exports.listarProyectosAsignadoTribunal = async (req, res) => {
           ...proyecto,
           estudiante: estudiante
             ? {
-                nombre_estudiante: estudiante.fullName,
-                email: estudiante.email,
-                carrera: estudiante.carrera,
-              }
+              nombre_estudiante: estudiante.fullName,
+              email: estudiante.email,
+              carrera: estudiante.carrera,
+            }
             : null,
           tutor: tutor
             ? {
-                nombre_tutor: tutor.fullName,
-              }
+              nombre_tutor: tutor.fullName,
+            }
             : null,
         };
       }
@@ -224,30 +224,24 @@ exports.listarProyectosHistorialObservar = async (req, res) => {
 
     const { rows: proyectos_historial_observar } = await db.query(
       `SELECT 
-        pt.*,
-        json_agg(
-          json_build_object(
-            'id', ha.id,
-            'accion', ha.accion,
-            'fecha', ha.fecha,
-            'detalle', ha.detalles,
-            'tipo_tutoria', ha.tipo_tutoria,
-            'corregido', ha.corregido,
-            'docente_id', ha.usuario_id
-          )
-          ORDER BY ha.fecha ASC
-        ) AS observacionesHistorial
-      FROM proyectos pt
-      INNER JOIN proyecto_tribunal pt2 ON pt.id = pt2.proyecto_id
-      INNER JOIN historial_acciones ha ON pt.id = ha.proyecto_id
-      inner join solicitudes_tutoria st on pt.id = st.proyecto_id
-      WHERE pt2.docentes_id = $1
-      AND ha.accion IN (
-        'Solicitud tutor',
-        'Observación de Perfil',
-        'Aprobar Perfil'
-      )
-      GROUP BY pt.id`,
+        p.id AS proyecto_id,
+        p.titulo,
+        pp.estado,
+        p.fecha_inicio,
+        p.descripcion,
+        p.area,
+        pp.id AS perfil_id,
+        pt.docentes_id,
+        p.estudiante_id,
+        p.tutor_id,
+        p.tipotutoria 
+      FROM proyecto_tribunal pt
+      INNER JOIN proyectos p ON pt.proyecto_id = p.id
+      LEFT JOIN perfiles_proyecto pp 
+        ON pp.proyecto_id = p.id AND pp.revisado_por = pt.docentes_id
+      WHERE       
+      pt.docentes_id = $1
+        AND (pp.estado IS NULL OR pp.estado = 'perfil_pendiente' or pp.estado='perfil_observado');`,
       [req.user.id]
     );
 
@@ -262,52 +256,19 @@ exports.listarProyectosHistorialObservar = async (req, res) => {
           (user) => user.id === proyecto.tutor_id && user.role === "docente"
         );
 
-        // Armar observaciones con nombre de docente
-        const observacionesHistorialConNombre =
-          proyecto.observacioneshistorial.map((obs) => {
-            const docente = usersData.find(
-              (user) => user.id === obs.docente_id && user.role === "docente"
-            );
-            return {
-              ...obs,
-              nombre_docente: docente ? docente.fullName : null,
-            };
-          });
-
-        // Eliminar campo original
-        delete proyecto.observacioneshistorial;
-
-        // Identificar la última acción (por fecha)
-        const ultimaAccion = observacionesHistorialConNombre.reduce(
-          (latest, obs) =>
-            new Date(obs.fecha) > new Date(latest.fecha) ? obs : latest
-        );
-
-        // Filtrar observaciones por:
-        // 1. Que el docente haya corregido
-        // 2. Que coincidan con la última acción
-        const observacionesFiltradas = observacionesHistorialConNombre.filter(
-          (obs) =>
-            obs.docente_id === req.user.id &&
-            obs.corregido === true &&
-            obs.accion === ultimaAccion.accion
-        );
-
         return {
           ...proyecto,
-          estado_perfil: proyecto.estado_perfil || "Sin perfil",
-          observacionesHistorial: observacionesFiltradas,
           estudiante: estudiante
             ? {
-                nombre_estudiante: estudiante.fullName,
-                email: estudiante.email,
-                carrera: estudiante.carrera,
-              }
+              nombre_estudiante: estudiante.fullName,
+              email: estudiante.email,
+              carrera: estudiante.carrera,
+            }
             : null,
           tutor: tutor
             ? {
-                nombre_tutor: tutor.fullName,
-              }
+              nombre_tutor: tutor.fullName,
+            }
             : null,
         };
       }
@@ -329,53 +290,98 @@ exports.registrarEvaluacionPerfil = async (req, res) => {
     observaciones_detalle,
     observaciones_fecha,
     observaciones_tipo_tutoria,
-    id,
+    proyecto_id,
+    estudiante_id,
+    tutor_id
   } = req.body;
-
+    
+  const observacion_perfil=observaciones_estado === "perfil_aprobado"?'aprobacion':'observacion';
   try {
     if (observaciones_estado === "perfil_aprobado") {
       await db.query(
-        `INSERT INTO public.perfiles_proyecto
-      (proyecto_id, documento, estado, observaciones, "version", fecha_envio, fecha_revision, revisado_por)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    `,
+        `UPDATE public.perfiles_proyecto
+          SET 
+            documento = $1,
+            estado = $2,
+            observaciones = $3,
+            "version" = $4,
+            fecha_envio = $5,
+            fecha_revision = $6
+          WHERE revisado_por = $7 and proyecto_id = $8`,
         [
-          id,
-          "debe ir la imagen del perfil",
-          observaciones_estado,
-          observaciones_detalle,
-          1,
-          observaciones_fecha,
-          observaciones_fecha,
-          req.user.id,
+          "debe ir la imagen del perfil", 
+          observaciones_estado,          
+          observaciones_detalle,         
+          1,                             
+          observaciones_fecha,           
+          observaciones_fecha,           
+          req.user.id,                   
+          proyecto_id                             
         ]
+      );
+      
+      await db.query(
+        `INSERT INTO public.borradores_proyecto
+        (proyecto_id, documento, estado, observaciones, "version", fecha_envio, fecha_revision, revisado_por)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          proyecto_id,
+          "debe ir la imagen del perfil", 
+          observaciones_estado,          
+          observaciones_detalle,         
+          1,                             
+          observaciones_fecha,           
+          observaciones_fecha,           
+          req.user.id                             
+        ]
+      );
+    }else {
+      await db.query(
+        "UPDATE perfiles_proyecto SET estado = $1, fecha_revision = $2 WHERE  proyecto_id= $3 and revisado_por=$4",
+        [observaciones_estado, observaciones_actualizado_en, proyecto_id, req.user.id]
       );
     }
 
+
     await db.query(
       "UPDATE proyectos SET estado = $1, actualizado_en = $2 WHERE id = $3",
-      [observaciones_estado, observaciones_actualizado_en, id]
+      [observaciones_estado, observaciones_actualizado_en, proyecto_id]
     );
 
     await db.query(
       `INSERT INTO historial_acciones
-      (usuario_id, proyecto_id, accion, fecha, detalles, tipo_tutoria, corregido)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      (usuario_id, proyecto_id, accion, fecha, detalles, tipo_tutoria, corregido, tutor_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `,
       [
         req.user.id,
-        id,
+        proyecto_id,
         observaciones_accion,
         observaciones_fecha,
         observaciones_detalle,
         observaciones_tipo_tutoria,
         observaciones_corregido,
+        tutor_id
       ]
     );
 
-    res.json({ message: "Evaluacion de perfil del proyecto." });
+    await db.query(
+      `INSERT INTO notificaciones
+      (usuario_id, mensaje, tipo, leido, fecha_envio, relacion_id, relacion_tipo)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)`,
+      [estudiante_id, observaciones_detalle, observacion_perfil, false, proyecto_id, observaciones_tipo_tutoria]
+    );
+
+    res.status(201).json({
+      message: "Evaluacion de perfil del proyecto.",
+      registrado:true,
+      tipo_tutoria: observaciones_tipo_tutoria
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({
+      message: err.message,
+      registrado:false
+    });
   }
 };
 
@@ -386,36 +392,36 @@ exports.listarProyectosHistorialObservarBorrador = async (req, res) => {
       fs.readFileSync(path.join(__dirname, "../data/users.json"), "utf8")
     );
 
-    const { rows: proyectos_historial_observar } = await db.query(
-      `SELECT 
-        pt.*,
-        json_agg(
-          json_build_object(
-            'id', ha.id,
-            'accion', ha.accion,
-            'fecha', ha.fecha,
-            'detalle', ha.detalles,
-            'tipo_tutoria', ha.tipo_tutoria,
-            'corregido', ha.corregido,
-            'docente_id', ha.usuario_id
-          )
-          ORDER BY ha.fecha ASC
-        ) AS observacionesHistorial
-      FROM proyectos pt
-      INNER JOIN proyecto_tribunal pt2 ON pt.id = pt2.proyecto_id
-      INNER JOIN historial_acciones ha ON pt.id = ha.proyecto_id
-      INNER JOIN borradores_proyecto p ON pt.id = p.proyecto_id
-      WHERE pt2.docentes_id = $1
-      AND ha.accion IN (
-        'Aprobar Perfil',
-        'Observación de borrador',
-        'Aprobar borrador'
-      )
-      GROUP BY pt.id`,
+    const { rows: proyectos_historial_borrador } = await db.query(
+      `
+        SELECT 
+          p.id AS proyecto_id,
+          p.titulo,
+          bp.estado,
+          p.fecha_inicio,
+          p.descripcion,
+          bp.id AS perfil_id,
+          pt.docentes_id,
+          p.estudiante_id,
+          p.tutor_id,
+          p.area 
+        FROM proyecto_tribunal pt
+        INNER JOIN proyectos p ON pt.proyecto_id = p.id
+        LEFT JOIN borradores_proyecto bp  
+          ON bp.proyecto_id = p.id AND bp.revisado_por = pt.docentes_id
+        WHERE 
+          pt.docentes_id = $1
+          AND (bp.estado IS NULL OR bp.estado = 'perfil_aprobado' or bp.estado='borrador_observado')
+          AND (
+          SELECT COUNT(DISTINCT bp2.revisado_por)
+          FROM borradores_proyecto bp2  
+          WHERE bp2.proyecto_id = p.id AND bp2.estado = 'perfil_aprobado' or bp.estado='borrador_observado'
+        ) = 3
+        `,
       [req.user.id]
     );
 
-    const proyectosConEstudiante = proyectos_historial_observar.map(
+    const proyectosConEstudiante = proyectos_historial_borrador.map(
       (proyecto) => {
         const estudiante = usersData.find(
           (user) =>
@@ -425,32 +431,21 @@ exports.listarProyectosHistorialObservarBorrador = async (req, res) => {
         const tutor = usersData.find(
           (user) => user.id === proyecto.tutor_id && user.role === "docente"
         );
-
-        const observacionesHistorialConNombre =
-          proyecto.observacioneshistorial.map((obs) => {
-            const docente = usersData.find(
-              (user) => user.id === obs.docente_id && user.role === "docente"
-            );
-            return {
-              ...obs,
-              nombre_docente: docente ? docente.fullName : null,
-            };
-          });
+ 
 
         return {
           ...proyecto,
-          observacionesHistorial: observacionesHistorialConNombre,
           estudiante: estudiante
             ? {
-                nombre_estudiante: estudiante.fullName,
-                email: estudiante.email,
-                carrera: estudiante.carrera,
-              }
+              nombre_estudiante: estudiante.fullName,
+              email: estudiante.email,
+              carrera: estudiante.carrera,
+            }
             : null,
           tutor: tutor
             ? {
-                nombre_tutor: tutor.fullName,
-              }
+              nombre_tutor: tutor.fullName,
+            }
             : null,
         };
       }
@@ -472,53 +467,82 @@ exports.registrarEvaluacionBorrador = async (req, res) => {
     observaciones_detalle,
     observaciones_fecha,
     observaciones_tipo_tutoria,
-    id,
+    proyecto_id,
+    estudiante_id,
+    tutor_id
   } = req.body;
-
+  
+  const observacion_perfil=observaciones_estado === "perfil_aprobado"?'aprobacion':'observacion';
+  
   try {
     if (observaciones_estado === "borrador_aprobado") {
       await db.query(
-        `INSERT INTO public.borradores_proyecto
-      (proyecto_id, documento, estado, observaciones, "version", fecha_envio, fecha_revision, revisado_por)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    `,
+        `UPDATE public.borradores_proyecto
+          SET 
+            documento = $1,
+            estado = $2,
+            observaciones = $3,
+            "version" = $4,
+            fecha_envio = $5,
+            fecha_revision = $6
+          WHERE revisado_por = $7 and proyecto_id = $8`,
         [
-          id,
-          "debe ir la imagen del perfil",
-          observaciones_estado,
-          observaciones_detalle,
-          1,
-          observaciones_fecha,
-          observaciones_fecha,
-          req.user.id,
+          "debe ir la imagen del perfil", 
+          observaciones_estado,          
+          observaciones_detalle,         
+          1,                             
+          observaciones_fecha,           
+          observaciones_fecha,           
+          req.user.id,                   
+          proyecto_id                             
         ]
+      );
+    }else {
+      await db.query(
+        "UPDATE public.borradores_proyecto SET estado = $1, fecha_revision = $2 WHERE  proyecto_id= $3 and revisado_por=$4",
+        [observaciones_estado, observaciones_actualizado_en, proyecto_id, req.user.id]
       );
     }
 
     await db.query(
       "UPDATE proyectos SET estado = $1, actualizado_en = $2 WHERE id = $3",
-      [observaciones_estado, observaciones_actualizado_en, id]
+      [observaciones_estado, observaciones_actualizado_en, proyecto_id]
     );
 
     await db.query(
       `INSERT INTO historial_acciones
-      (usuario_id, proyecto_id, accion, fecha, detalles, tipo_tutoria, corregido)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      (usuario_id, proyecto_id, accion, fecha, detalles, tipo_tutoria, corregido, tutor_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `,
       [
         req.user.id,
-        id,
+        proyecto_id,
         observaciones_accion,
         observaciones_fecha,
         observaciones_detalle,
         observaciones_tipo_tutoria,
         observaciones_corregido,
+        tutor_id
       ]
     );
 
-    res.json({ message: "Evaluacion de perfil del proyecto." });
+    await db.query(
+      `INSERT INTO notificaciones
+      (usuario_id, mensaje, tipo, leido, fecha_envio, relacion_id, relacion_tipo)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)`,
+      [estudiante_id, observaciones_detalle, observacion_perfil, false, proyecto_id, observaciones_tipo_tutoria]
+    );
+
+    res.status(201).json({
+      message: "Evaluacion de borrador del proyecto.",
+      registrado:true,
+      tipo_tutoria: observaciones_tipo_tutoria
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({
+      message: err.message,
+      registrado:false
+    });
   }
 };
 
@@ -576,8 +600,8 @@ exports.listarProyectosAprobadorBorrador = async (req, res) => {
             ...proyecto,
             estudiante: estudiante
               ? {
-                  nombre_estudiante: estudiante.fullName,
-                }
+                nombre_estudiante: estudiante.fullName,
+              }
               : null,
           };
         }
@@ -595,3 +619,52 @@ exports.listarProyectosAprobadorBorrador = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.listarHistorialProyecto = async (req, res) => {
+  const idProyecto = req.query.id_proyecto;
+
+  if (!idProyecto) {
+    return res.status(400).json({ error: "Se requiere el parámetro id_proyecto" });
+  }
+
+  try {
+    const usersFile = path.join(__dirname, "../data/users.json");
+    const usersData = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+
+    const { rows: historial } = await db.query(
+      `SELECT ha.fecha, ha.corregido, ha.tipo_tutoria, ha.usuario_id, ha.tutor_id, ha.accion, ha.detalles, ha.tipo_tutoria
+       FROM public.historial_acciones ha 
+       WHERE ha.proyecto_id = $1
+       ORDER BY ha.fecha ASC`,
+      [idProyecto]
+    );
+
+    const historialFormateado = historial.map((registro) => {
+      const userById = (id) => usersData.find((u) => u.id === id);
+
+      const estudiante = userById(registro.usuario_id);
+      const tutor = userById(registro.tutor_id);
+      const docente = estudiante && (estudiante.role === "docente" || estudiante.role === "director") ? estudiante : null;
+
+      return {
+        ...registro,
+        estudiante: estudiante && estudiante.role === "estudiante"
+          ? { nombre_estudiante: estudiante.fullName }
+          : null,
+        docente: docente
+          ? { nombre_docente: docente.fullName }
+          : null,
+        tutor: tutor && tutor.role === "docente"
+          ? { nombre_tutor: tutor.fullName }
+          : null,
+      };
+    });
+
+    res.json(historialFormateado);
+  } catch (err) {
+    console.error("Error al listar historial:", err);
+    res.status(500).json({ error: "Error interno al obtener historial del proyecto" });
+  }
+};
+
+

@@ -19,7 +19,7 @@
                   @change="cargarDocentesDisponibles">
                   <option value="">Seleccione un proyecto</option>
                   <option v-for="proyecto in proyectos" :key="proyecto.proyecto_id"
-                    :value="{ proyecto_id: proyecto.proyecto_id, estudiante_id: proyecto.estudiante_id }">
+                    :value="{ proyecto_id: proyecto.proyecto_id, estudiante_id: proyecto.estudiante_id, tipotutoria: proyecto.tipotutoria }">
                     {{ proyecto.titulo }} - {{ proyecto.estudiante?.nombre_estudiante }}
                   </option>
                 </select>
@@ -133,6 +133,7 @@ import Navbar from '../Navbar.vue';
 import Sidebar from '../Sidebar.vue';
 import datosService from "../../services/materiasService";
 import datosProyectosService from "../../services/directorService";
+import { alertaExito, alertaError } from '../../utils/alertas'
 const isSidebarOpen = ref(false);
 const proyectoSeleccionado = ref(null);
 const docentesSeleccionados = ref([]);
@@ -171,6 +172,7 @@ const asignacionValida = computed(() => {
     proyectoSeleccionado.value &&
     proyectoSeleccionado.value.proyecto_id &&
     proyectoSeleccionado.value.estudiante_id &&
+    proyectoSeleccionado.value.tipotutoria &&
     docentesSeleccionados.value.length === 3
   );
 });
@@ -190,21 +192,26 @@ const confirmarAsignacion = () => {
 };
 
 const guardarAsignacion = async () => {
+  mostrarConfirmacion.value = false;
   try {
     enviando.value = true;
 
     const asignacion = {
       proyectoId: proyectoSeleccionado.value.proyecto_id,
       estudianteId: proyectoSeleccionado.value.estudiante_id,
+      tipotutoria: proyectoSeleccionado.value.tipotutoria,
       docentesIds: docentesSeleccionados.value
     };
-
     const response = await datosProyectosService.asignarTribunal(asignacion);
-    cargarProyectos(); 
-    cancelarAsignacion();
+    if (response.registrado) {
+      alertaExito(response.message)
+      cargarProyectos();
+      cancelarAsignacion();
+    } else {
+      alertaError(response.message)
+    }
   } catch (error) {
     console.error('Error al guardar la asignación:', error);
-    alert('Error al asignar el tribunal');
   } finally {
     enviando.value = false;
     mostrarConfirmacion.value = false;

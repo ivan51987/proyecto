@@ -85,19 +85,21 @@
 
                   <!-- Acciones -->
                   <div class="mt-6 flex flex-wrap gap-3 justify-end">
-                    <button @click="verborrador(borrador)" 
+                    <button @click="verborrador(borrador)"
                       class="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200">
                       Ver borrador
                     </button>
-                    <button @click="evaluarborrador(borrador, 'observado')" v-if="borrador.estado === 'perfil_aprobado' || borrador.estado === 'borrador_observado'"
+                    <button @click="evaluarborrador(borrador, 'observado')"
+                      v-if="borrador.estado === 'perfil_aprobado' || borrador.estado === 'borrador_observado'"
                       class="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200">
                       Agregar Observaciones
                     </button>
-                    <button @click="evaluarborrador(borrador, 'aprobado')" v-if="borrador.estado === 'perfil_aprobado' || borrador.estado === 'borrador_observado'"
+                    <button @click="evaluarborrador(borrador, 'aprobado')"
+                      v-if="borrador.estado === 'perfil_aprobado' || borrador.estado === 'borrador_observado'"
                       class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700">
                       Aprobar borrador
                     </button>
-                    <button @click="verHistorial(borrador)"
+                    <button @click="verHistorial(borrador.proyecto_id)"
                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
                       Ver Historial
                     </button>
@@ -167,7 +169,7 @@
       <div class="bg-white rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
         <div class="flex justify-between items-center border-b pb-3 mb-4">
           <h3 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
-            Historial del Proyecto
+            Historial del Proyecto en el Perfil
           </h3>
           <button @click="cerrarHistorial" class="text-gray-400 hover:text-gray-600">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +179,7 @@
         </div>
         <div class="overflow-y-auto max-h-[70vh] pr-2">
           <ul class="space-y-6">
-            <li v-for="(obs, index) in borradorHistorial.observacionesHistorial" :key="index"
+            <li v-for="(obs, index) in borradorHistorial" :key="index"
               class="p-5 rounded-lg border border-gray-200 bg-gray-50 shadow-sm hover:shadow-md transition">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-sm text-gray-600">
@@ -185,27 +187,50 @@
                 </span>
                 <span :class="[
                   'text-xs font-semibold px-3 py-1 rounded-full',
-                  obs.corregido ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  obs.corregido === true
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
                 ]">
-                  {{ obs.corregido ? 'Corregido' : 'Pendiente' }}
+                  {{ obs.corregido === true ? 'Corregido' : 'Pendiente' }}
                 </span>
               </div>
-            
+
               <div class="space-y-1">
                 <p class="text-sm text-indigo-700">
-                  <strong>Tutoría:</strong> {{ obs.tipo_tutoria }}
+                  <strong>Tutoría:</strong>
+                  {{ obs.tipo_tutoria || 'Sin especificar' }}
                 </p>
+
                 <p class="text-sm text-gray-800">
-                  <strong>Nombre del Tribunal:</strong> <span v-html="obs.nombre_docente"></span>
-                </p> 
+                  <strong>Estudiante:</strong>
+                  <span v-if="obs.estudiante">{{ obs.estudiante.nombre_estudiante }}</span>
+                  <span v-else class="text-red-500">No registrado</span>
+                </p>
+
                 <p class="text-sm text-gray-800">
-                  <strong>Acción:</strong> <span v-html="obs.accion"></span>
-                </p>                               
+                  <strong>Docente/Tribunal:</strong>
+                  <span v-if="obs.docente">{{ obs.docente.nombre_docente }}</span>
+                  <span v-else class="text-red-500">No asignado</span>
+                </p>
+
                 <p class="text-sm text-gray-800">
-                  <strong>Detalle de la Observación:</strong> <span v-html="obs.detalle"></span>
-                </p>                
+                  <strong>Tutor:</strong>
+                  <span v-if="obs.tutor">{{ obs.tutor.nombre_tutor }}</span>
+                  <span v-else class="text-red-500">No asignado</span>
+                </p>
+
+                <p class="text-sm text-gray-800">
+                  <strong>Acción:</strong>
+                  {{ obs.accion }}
+                </p>
+
+                <p class="text-sm text-gray-800">
+                  <strong>Detalle:</strong>
+                  {{ obs.detalles || 'Sin detalle' }}
+                </p>
               </div>
             </li>
+
           </ul>
         </div>
       </div>
@@ -222,6 +247,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import Navbar from '../Navbar.vue';
 import Sidebar from '../Sidebar.vue';
 import datosService from "../../services/docenteService";
+import { alertaConfirmacion, alertaError, alertaExito } from '../../utils/alertas';
 const isSidebarOpen = ref(false);
 const busqueda = ref('');
 const filtroEstado = ref('');
@@ -295,18 +321,39 @@ const confirmarEvaluacion = async () => {
   try {
     if (!observaciones.value.trim()) return;
     const borrador = borradorSeleccionado.value;
+
     borrador.observaciones_estado = modalTipo.value === 'aprobado' ? 'borrador_aprobado' : 'borrador_observado';
     borrador.observaciones_actualizado_en = new Date().toISOString();
-    borrador.observaciones_tipo_tutoria = borrador.observacioneshistorial[0].tipo_tutoria;
+    borrador.observaciones_tipo_tutoria = borrador.tipotutoria;
     borrador.observaciones_accion = modalTipo.value === 'aprobado' ? 'Aprobar borrador' : 'Observación de borrador';
     borrador.observaciones_fecha = new Date().toISOString();
     borrador.observaciones_detalle = observaciones.value;
     borrador.observaciones_corregido = modalTipo.value === 'aprobado' ? true : false;
+    
+    const confirmacion = await alertaConfirmacion({
+      title: '¿Esta seguro de enviar la observacion?',
+      text: 'Una vez guardado, no podrás editarlo.',
+      confirmText: 'Sí, guardar',
+      cancelText: 'Cancelar'
+    })
+    if (confirmacion.isConfirmed) {
+      try {
+        const response = await datosService.registrarEvaluacionBorrador(borrador);
 
-    const response = await datosService.registrarEvaluacionBorrador(borrador);
+        await obtenerborradores();
+        cerrarModal();
+        if (response.registrado) {
+          alertaExito(response.message)
+          obtenerborradores();
+          cerrarModal();
+        } else {
+          alertaError(response.message)
+        }
+      } catch (error) {
+        alertaError(error);
+      }
+    }
 
-    await obtenerborradores();
-    cerrarModal();
   } catch (error) {
     console.error('Error al cargar los borradores:', error);
   }
@@ -319,9 +366,15 @@ const cerrarModal = () => {
   borradorSeleccionado.value = null;
 };
 
-const verHistorial = (borrador) => {
-  borradorHistorial.value = borrador;
-  mostrarHistorial.value = true;
+const verHistorial = async (idProyecto) => {
+  try {
+    const response = await datosService.lsitaHistorialProyecto(idProyecto);
+    borradorHistorial.value = response;
+    mostrarHistorial.value = true;
+  } catch (error) {
+    console.log(error);
+  }
+
 };
 
 const cerrarHistorial = () => {

@@ -1,4 +1,3 @@
-const { log } = require("console");
 const db = require("../config/db");
 const fs = require("fs");
 const path = require("path");
@@ -70,20 +69,61 @@ exports.asignarDefensa = async (req, res) => {
 
 // 3. Asignar tribunal evaluador
 exports.asignarTribunal = async (req, res) => {
-  const { proyectoId, estudianteId, docentesIds } = req.body;
-  
+  const { proyectoId, estudianteId, docentesIds, tipotutoria } = req.body;
+
   try {
     for (const usuarioId of docentesIds) {
-      await db.query(`
-        INSERT INTO proyecto_tribunal (proyecto_id, docentes_id, rol, estudiante_id, created_at)
-        VALUES ($1, $2, 'Tribunal', $3, NOW())
-      `, [proyectoId, usuarioId, estudianteId]);
+      const perfil = await db.query(`
+      INSERT INTO public.perfiles_proyecto
+      (proyecto_id, estado, fecha_envio, revisado_por)
+      VALUES ($1, $2, NOW(), $3)
+    `, [proyectoId, 'perfil_pendiente', usuarioId]);
+
+      if (perfil.rowCount === 0) {
+        return res.status(500).json({ message: `No se pudo registrar el perfil del docente ID ${usuarioId}` });
+      }
+
+      const tribunal = await db.query(`
+      INSERT INTO proyecto_tribunal (proyecto_id, docentes_id, rol, estudiante_id, created_at)
+      VALUES ($1, $2, 'Tribunal', $3, NOW())
+    `, [proyectoId, usuarioId, estudianteId]);
+
+      if (tribunal.rowCount === 0) {
+        return res.status(500).json({ message: `No se pudo registrar el tribunal del docente ID ${usuarioId}` });
+      }
+
+      const notificacion = await db.query(
+        `INSERT INTO public.notificaciones
+      (usuario_id, mensaje, tipo, leido, fecha_envio, relacion_id, relacion_tipo)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)`,
+        [usuarioId, 'asignar a los tribunal', 'asignar', false, proyectoId, 'asignar tribunal']
+      );
+
+      if (notificacion.rowCount === 0) {
+        return res.status(500).json({ message: 'No se pudo registrar la notificación' });
+      }
     }
 
-    res.json({ message: "Tribunal asignado con éxito." });
+    const historial = await db.query(`
+    INSERT INTO public.historial_acciones
+    (usuario_id, proyecto_id, tipo_tutoria, accion, detalles, fecha)
+    VALUES ($1, $2, $3, $4, $5, NOW())
+  `, [req.user.id, proyectoId, tipotutoria,'asignacion de tribunales', 'registro de tribunales que van a revisar el proyecto']);
+
+    if (historial.rowCount === 0) {
+      return res.status(500).json({ message: 'No se pudo guardar el historial de la asignación.' });
+    }
+
+    res.status(201).json({
+      message: 'Tribunal asignado con éxito a los.' + docentesIds.length,
+      registrado: true
+    });
+
   } catch (err) {
-    console.error("Error al asignar tribunal:", err);
-    res.status(500).json({ error: "Ocurrió un error al asignar el tribunal." });
+    res.status(500).json({
+      message: 'Ocurrió un error al asignar el tribunal.',
+      registrado: false
+    });
   }
 };
 
@@ -120,7 +160,7 @@ exports.listarProyectos = async (req, res) => {
 
     // Consultar proyectos en progreso
     const { rows: proyectos } = await db.query(`
-      SELECT p.id as proyecto_id, p.estudiante_id, p.tutor_id, p.area, p.titulo
+      SELECT p.id as proyecto_id, p.estudiante_id, p.tutor_id, p.area, p.titulo, p.tipotutoria
       FROM proyectos p 
       WHERE p.estado = 'en_progreso'
         AND NOT EXISTS (
@@ -134,17 +174,17 @@ exports.listarProyectos = async (req, res) => {
     const proyectosConEstudiante = proyectos.map((proyecto) => {
       const estudiante = usersData.find(
         (user) => user.id === proyecto.estudiante_id && user.role === "estudiante"
-      );          
+      );
 
       return {
         ...proyecto,
         estudiante: estudiante
           ? {
-              nombre_estudiante: estudiante.fullName,
-              email: estudiante.email,
-              carrera: estudiante.carrera,
-            }
-          : null, 
+            nombre_estudiante: estudiante.fullName,
+            email: estudiante.email,
+            carrera: estudiante.carrera,
+          }
+          : null,
       };
     });
 
@@ -177,17 +217,17 @@ exports.listarProyectosDefensas = async (req, res) => {
     const proyectosConEstudiante = proyectos.map((proyecto) => {
       const estudiante = usersData.find(
         (user) => user.id === proyecto.estudiante_id && user.role === "estudiante"
-      );          
+      );
 
       return {
         ...proyecto,
         estudiante: estudiante
           ? {
-              nombre_estudiante: estudiante.fullName,
-              email: estudiante.email,
-              carrera: estudiante.carrera,
-            }
-          : null, 
+            nombre_estudiante: estudiante.fullName,
+            email: estudiante.email,
+            carrera: estudiante.carrera,
+          }
+          : null,
       };
     });
 

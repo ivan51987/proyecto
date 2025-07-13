@@ -2,8 +2,7 @@ import { API_CONFIG } from "../config/api.config";
 
 const tutoriaService = {
   async registrarSolicitud(formData) {
-    const token = localStorage.getItem("token");
-
+    const token = localStorage.getItem("token");    
     try {
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/estudiantes/enviar-solicitud`,
@@ -103,7 +102,6 @@ const tutoriaService = {
   async listarProyectosHistorialObservar() {
     try {
       const token = localStorage.getItem("token");
-
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/docentes/proyectos-historial-observar`,
         {
@@ -116,8 +114,7 @@ const tutoriaService = {
       );
 
       const data = await response.json();
-      console.log(data);
-      
+            
       return data;
     } catch (error) {
       console.error(
@@ -129,8 +126,7 @@ const tutoriaService = {
   },
 
   async registrarEvaluacionPerfil(payload) {
-    const token = localStorage.getItem("token");
-     
+    const token = localStorage.getItem("token");     
     try {
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/docentes/registrar-perfil-proyecto`,
@@ -143,6 +139,7 @@ const tutoriaService = {
           body: JSON.stringify(payload),
         }
       );
+
 
       const data = await response.json();
       return data;
@@ -222,7 +219,30 @@ const tutoriaService = {
       console.error("Error en listar proyectos para evaluar", error.message);
       throw error
     }
+  },
+
+  async  lsitaHistorialProyecto(id_proyecto){
+    try {
+      const token =localStorage.getItem("token");
+      const response= await fetch(
+        `${API_CONFIG.BASE_URL}/docentes/lista-proyecto-historial?id_proyecto=${id_proyecto}`,
+        {
+          method:"GET",
+          headers:{
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }
+        }
+      )
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error en listar proyectos para evaluar", error.message);
+      throw error
+    }
   }
+
 };
 
 export default tutoriaService;

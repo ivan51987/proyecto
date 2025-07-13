@@ -24,6 +24,27 @@ const estudianteService = {
       throw error;
     }
   },
+
+  async listarProyectoRegistrado(){
+    try {
+      const token = localStorage.getItem("token");
+      const response =await fetch(
+        `${API_CONFIG.BASE_URL}/estudiantes/proyecto-registrado`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data =await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error en listar proyecto", error.message);
+      throw error;
+    }
+  }
 };
 
 export default estudianteService;

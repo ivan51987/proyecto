@@ -7,18 +7,30 @@
       <div class="px-4 sm:px-6 lg:px-8 py-8">
         <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
           <h2 class="text-2xl font-bold text-gray-800 mb-6">Registrar Proyecto</h2>
-
-          <!-- Mensaje de respuesta -->
-          <div v-if="mensaje" :class="mensajeClase" class="mb-4 p-3 rounded-md text-sm">
-            {{ mensaje }}
-          </div>
-
           <form @submit.prevent="enviarProyecto" class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700">Título del Proyecto</label>
               <input v-model.trim="proyecto.titulo" type="text"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 required />
+            </div>
+            <!-- Tipo de Tutoría -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Tipo de Tutoría
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button v-for="tipo in tiposTutoria" :key="tipo.id" type="button"
+                  @click="proyecto.tipoTutoria = tipo.id" :class="[
+                    'p-4 border rounded-lg text-left',
+                    proyecto.tipoTutoria === tipo.id
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-primary-300'
+                  ]">
+                  <div class="font-medium">{{ tipo.nombre }}</div>
+                  <div class="text-sm text-gray-500">{{ tipo.descripcion }}</div>
+                </button>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Área de Investigación</label>
@@ -39,13 +51,6 @@
                 required></textarea>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-              <input v-model="proyecto.fecha_inicio" type="date"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                required />
-            </div>
-
             <div class="flex justify-end">
               <button type="submit" :disabled="enviando"
                 class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50">
@@ -61,10 +66,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import Navbar from './Navbar.vue'
 import Sidebar from './Sidebar.vue'
 import datosService from "../services/estudianteService";
+import { alertaExito, alertaError, alertaConfirmacion } from '../utils/alertas'
 // Estado UI
 const isSidebarOpen = ref(false)
 const toggleSidebar = () => (isSidebarOpen.value = !isSidebarOpen.value)
@@ -79,56 +85,71 @@ const areasInvestigacion = [
   'Otros'
 ];
 
+const tiposTutoria = [
+  {
+    id: 'tesis',
+    nombre: 'Tesis',
+    descripcion: 'Trabajo de investigación, presentada públicamente, para obtener un grado académico universitario, producto del estudio teórico de un tema original, pudiendo ajustarse a cualquier modelo o paradigma de investigación y que, realizada con rigor metodológico, debe contener, en sus conclusiones, aspectos propositivos.'
+  },
+  {
+    id: 'proyecto_pet',
+    nombre: 'Programa especial de titulación(P.E.T.)',
+    descripcion: 'Es el trabajo de investigación, programación y diseño de solución a algún problema o situación, aplicando estrategias apropiadas.'
+  },
+  {
+    id: 'proyecto_grado_dirigido',
+    nombre: 'Proyecto de Grado Dirigido',
+    descripcion: 'Es la ejecución y evaluación del diseño de un proyecto en diferentes instituciones fuera de la universidad respaldada por un convenio interinstitucional.'
+  },
+  {
+    id: 'diplomado',
+    nombre: 'Proyecto de Grado por Diplomado',
+    descripcion: 'Modalidad de graduación que se rige en el aprovechamiento académico obtenido por el estudiante durante su permanencia en un programa de formación a nivel de licenciatura, expresado en indicadores cuantitativos (promedios y mediana) e indicadores cualitativos (tiempo de duración de estudios, aprobación en primera instancia, no abandonos).'
+  }
+];
+
 // Modelo de proyecto
 const proyecto = ref({
   area: '',
   titulo: '',
   descripcion: '',
-  fecha_inicio: ''
+  tipoTutoria: ''
 })
 
-// Estado de carga y mensajes
+// Estado de carga
 const enviando = ref(false)
-const mensaje = ref('')
-const exito = ref(false)
-
-// Estilo dinámico para el mensaje
-const mensajeClase = computed(() => {
-  return exito.value
-    ? 'bg-green-100 text-green-800 border border-green-300'
-    : 'bg-red-100 text-red-800 border border-red-300'
-})
 
 // Enviar solicitud al backend
 const enviarProyecto = async () => {
-  if (!proyecto.value.titulo || !proyecto.value.descripcion || !proyecto.value.fecha_inicio) {
-    mensaje.value = 'Por favor, completa todos los campos.'
-    exito.value = false
+  if (!proyecto.value.titulo || !proyecto.value.descripcion || !proyecto.value.tipoTutoria) {
+    alertaError('Debe lletodos los campos')
     return
   }
 
-  enviando.value = true
-  mensaje.value = ''
-
-  try {
-    const response = await datosService.registrarProyecto(proyecto.value)
-    console.log('Respuesta del servidor:', response);
-
-    exito.value = true
-    mensaje.value = 'Proyecto registrado correctamente.'
-
-    // Limpiar formulario
-    proyecto.value = {
-      titulo: '',
-      descripcion: '',
-      fecha_inicio: ''
+    const confirmacion = await alertaConfirmacion({
+      title: '¿Deseas guardar este registro?',
+      text: 'Una vez guardado, no podrás editarlo.',
+      confirmText: 'Sí, guardar',
+      cancelText: 'Cancelar'
+    })
+    if (confirmacion.isConfirmed) {
+      try {
+        enviando.value = true
+        const response = await datosService.registrarProyecto(proyecto.value)
+        if(response.registrado){
+          proyecto.value = {
+            titulo: '',
+            descripcion: '',
+            tipoTutoria: ''
+          }
+          alertaExito(response.message)
+        }else{
+          enviando.value = false  
+          alertaError(response.message)  
+        }
+      } catch (error) {
+        alertaError('No se pudo guardar el registro')
+      }
     }
-
-  } catch (err) {
-    exito.value = false
-    mensaje.value = err.message
-  } finally {
-    enviando.value = false
-  }
 }
 </script>

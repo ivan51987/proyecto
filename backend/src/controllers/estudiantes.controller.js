@@ -1,4 +1,4 @@
-const pool = require("../config/db");
+const db = require("../config/db");
 const fs = require("fs");
 const path = require("path");
 // 1. Buscar tutor disponible
@@ -23,8 +23,8 @@ exports.buscarTutores = async (req, res) => {
 
       const matchCurso = curso
         ? user.cursosAsignados.some((c) =>
-            c.toLowerCase().includes(curso.toLowerCase())
-          )
+          c.toLowerCase().includes(curso.toLowerCase())
+        )
         : true;
 
       return matchEspecialidad && matchNombre && matchCurso;
@@ -38,15 +38,13 @@ exports.buscarTutores = async (req, res) => {
 
 // 2. Enviar solicitud de tutoría
 exports.enviarSolicitudTutoria = async (req, res) => {
-  const { tutorId, tipoTutoria, detalles } = req.body;
+  const { tutorId, tipotutoria, detalles } = req.body;
+    
   const archivo = req.file;
 
-  const client = await pool.connect();
-
   try {
-    await client.query("BEGIN");
 
-    const buscarRegistroExistente = await client.query(
+    const buscarRegistroExistente = await db.query(
       `SELECT COUNT(st.id)
        FROM solicitudes_tutoria st  
        WHERE st.estudiante_id = $1 AND st.tutor_id = $2`,
@@ -57,43 +55,49 @@ exports.enviarSolicitudTutoria = async (req, res) => {
     if (cantidad > 0) {
       return res
         .status(400)
-        .json({ error: "Ya existe una solicitud pendiente con este tutor" });
+        .json({ 
+          message: "Ya existe una solicitud pendiente con este tutor",
+          registrado: false,
+        });
     }
 
-    const resultadoIdEstudiante = await client.query(
+    const resultadoIdEstudiante = await db.query(
       `SELECT p.id
        FROM proyectos p 
-       WHERE p.estudiante_id = $1`,
+       WHERE p.estudiante_id = $1
+       and p.estado = 'asignar_tribunal'`,
       [req.user.id]
     );
 
     if (resultadoIdEstudiante.rowCount === 0) {
-      await client.query("ROLLBACK");
       return res
         .status(404)
-        .json({ error: "No se encontró un proyecto para el estudiante" });
+        .json({ 
+          message: "No se encontró un proyecto para el estudiante",
+          registrado: false,
+        });
     }
 
     const idProyecto = resultadoIdEstudiante.rows[0].id;
 
-    await client.query(
-      `INSERT INTO historial_acciones (usuario_id, proyecto_id, tutor_id, accion, fecha)
-       VALUES ($1, $2, $3, 'Solicitud tutor', CURRENT_TIMESTAMP)`,
-      [req.user.id, idProyecto, tutorId]
+    await db.query(
+      `INSERT INTO historial_acciones (usuario_id, proyecto_id, tutor_id, accion, detalles, tipo_tutoria, fecha)
+       VALUES ($1, $2, $3, 'Solicitud tutor', $4, $5, CURRENT_TIMESTAMP)`,
+      [req.user.id, idProyecto, tutorId, detalles, tipotutoria]
     );
 
-    const result = await client.query(
+    const result = await db.query(
       `INSERT INTO solicitudes_tutoria 
        (estudiante_id, tutor_id, tipo_tutoria, detalle, estado, fecha_solicitud)
        VALUES ($1, $2, $3, $4, 'pendiente', CURRENT_DATE)
        RETURNING id`,
-      [req.user.id, tutorId, tipoTutoria, detalles]
+      [req.user.id, tutorId, tipotutoria, detalles]
     );
 
     const solicitudId = result.rows[0].id;
 
     if (archivo) {
-      await client.query(
+      await db.query(
         `INSERT INTO documentos (solicitud_id, estudiante_id, proyecto_id, nombre_archivo, ruta_archivo)
          VALUES ($1, $2, $3, $4, $5)`,
         [
@@ -105,38 +109,75 @@ exports.enviarSolicitudTutoria = async (req, res) => {
         ]
       );
     }
-
-    await client.query("COMMIT");
-    res.json({ message: "Solicitud enviada correctamente" });
+    res.status(201).json({
+      registrado: true,
+      message: "Solicitud enviada correctamente",
+      solicitudId
+    });
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error en enviarSolicitudTutoria:", err);
-    res.status(500).json({ error: err.message });
-  } finally {
-    client.release();
+    res.status(500).json({
+      registrado: false,
+      message: "Ocurrió un error al enviar la solicitud",
+      detalle: err.message
+    });
   }
 };
 
 // 3. Registrar proyecto
 exports.crearProyecto = async (req, res) => {
-  const { titulo, descripcion, area, fecha_inicio } = req.body;
-  const client = await pool.connect();
+  const { titulo, descripcion, area, fecha_inicio, tipoTutoria } = req.body;
+
+  const usersData = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "../data/users.json"), "utf8"));
+  const director = usersData.find(user => user.role === "director");
+  const id_docente = director ? director.id : null;
   try {
-    await client.query("BEGIN");
-
-    await client.query(
-      `
-      INSERT INTO proyectos (estudiante_id, titulo, descripcion, area, fecha_inicio, estado)
-      VALUES ($1, $2, $3, $4, $5, 'en_progreso')
-    `,
-      [req.user.id, titulo, descripcion, area, fecha_inicio]
+    const result = await db.query(
+      `INSERT INTO public.proyectos (estudiante_id, titulo, descripcion, area, fecha_inicio, estado, tipoTutoria)
+     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, 'en_progreso', $5)
+     RETURNING id`,
+      [req.user.id, titulo, descripcion, area, tipoTutoria]
     );
-    
-    await client.query("COMMIT");
 
-    res.json({ message: "Proyecto creado exitosamente" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (result.rows.length === 0) {
+      return res.status(500).json({ message: 'No se pudo registrar el proyecto' });
+    }
+
+    const nuevoProyectoId = result.rows[0].id;
+
+    const notificacion = await db.query(
+      `INSERT INTO public.notificaciones
+     (usuario_id, mensaje, tipo, leido, fecha_envio, relacion_id, relacion_tipo)
+     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)`,
+      [id_docente, titulo, 'solicitud', false, nuevoProyectoId, tipoTutoria]
+    );
+
+    if (notificacion.rowCount === 0) {
+      return res.status(500).json({ message: 'No se pudo registrar la notificación' });
+    }
+
+    const historial = await db.query(
+      `INSERT INTO public.historial_acciones
+     (usuario_id, proyecto_id, accion, detalles, tipo_tutoria, fecha, corregido)
+     VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6)`,
+      [req.user.id, nuevoProyectoId, 'registro', 'registro de ' + tipoTutoria, tipoTutoria, false]
+    );
+
+    if (historial.rowCount === 0) {
+      return res.status(500).json({ message: 'No se pudo registrar en el historial' });
+    }
+
+    res.status(201).json({
+      message: "Proyecto creado exitosamente",
+      registrado:true,
+      tipo_tutoria: tipoTutoria
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: 'Ocurrió un error al registrar el proyecto',
+      registrado:false
+    });
   }
 };
 
@@ -230,6 +271,25 @@ exports.historialAcciones = async (req, res) => {
       JOIN proyectos p ON ha.proyecto_id = p.id
       WHERE ha.usuario_id = $1
       ORDER BY ha.fecha DESC
+    `,
+      [req.user.id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 9. Proyecto registrado
+exports.proyectoRegistrado = async (req, res) => {
+  try {
+    const result = await db.query(
+      `
+      select p.titulo, p.descripcion, p.fecha_inicio, p.area, p.tipotutoria 
+      from public.proyectos p 
+      where p.estado = 'asignar_tribunal'
+      and p.estudiante_id =$1
     `,
       [req.user.id]
     );

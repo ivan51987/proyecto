@@ -90,16 +90,16 @@
                       Ver Perfil
                     </button>
                     <button @click="evaluarPerfil(perfil, 'observado')"
-                      v-if="perfil.estado === 'en_progreso' || perfil.estado === 'perfil_observado'"
+                      v-if="perfil.estado === 'perfil_pendiente' || perfil.estado === 'perfil_observado'"
                       class="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200">
                       Agregar Observaciones
                     </button>
                     <button @click="evaluarPerfil(perfil, 'aprobado')"
-                      v-if="perfil.estado === 'en_progreso' || perfil.estado === 'perfil_observado'"
+                      v-if="perfil.estado === 'perfil_pendiente' || perfil.estado === 'perfil_observado'"
                       class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700">
                       Aprobar Perfil
                     </button>
-                    <button @click="verHistorial(perfil)"
+                    <button @click="verHistorial(perfil.proyecto_id)"
                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
                       Ver Historial
                     </button>
@@ -179,7 +179,7 @@
         </div>
         <div class="overflow-y-auto max-h-[70vh] pr-2">
           <ul class="space-y-6">
-            <li v-for="(obs, index) in perfilHistorial.observacionesHistorial" :key="index"
+            <li v-for="(obs, index) in historialProyecto" :key="index"
               class="p-5 rounded-lg border border-gray-200 bg-gray-50 shadow-sm hover:shadow-md transition">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-sm text-gray-600">
@@ -187,29 +187,50 @@
                 </span>
                 <span :class="[
                   'text-xs font-semibold px-3 py-1 rounded-full',
-                  obs.corregido ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  obs.corregido === true
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
                 ]">
-                  {{ obs.corregido ? 'Corregido' : 'Pendiente' }}
+                  {{ obs.corregido === true ? 'Corregido' : 'Pendiente' }}
                 </span>
               </div>
 
               <div class="space-y-1">
                 <p class="text-sm text-indigo-700">
-                  <strong>Tutoría:</strong> {{ obs.tipo_tutoria }}
+                  <strong>Tutoría:</strong>
+                  {{ obs.tipo_tutoria || 'Sin especificar' }}
                 </p>
+
                 <p class="text-sm text-gray-800">
-                  <strong>Nombre del Tribunal:</strong>
-                  <span v-if="obs.nombre_docente" v-html="obs.nombre_docente"></span>
-                  <span v-else class="text-red-500"> Aún no tiene tribunales asignados</span>
+                  <strong>Estudiante:</strong>
+                  <span v-if="obs.estudiante">{{ obs.estudiante.nombre_estudiante }}</span>
+                  <span v-else class="text-red-500">No registrado</span>
                 </p>
+
                 <p class="text-sm text-gray-800">
-                  <strong>Acción:</strong> <span v-html="obs.accion"></span>
+                  <strong>Docente/Tribunal:</strong>
+                  <span v-if="obs.docente">{{ obs.docente.nombre_docente }}</span>
+                  <span v-else class="text-red-500">No asignado</span>
                 </p>
+
                 <p class="text-sm text-gray-800">
-                  <strong>Detalle de la Observación:</strong> <span v-html="obs.detalle"></span>
+                  <strong>Tutor:</strong>
+                  <span v-if="obs.tutor">{{ obs.tutor.nombre_tutor }}</span>
+                  <span v-else class="text-red-500">No asignado</span>
+                </p>
+
+                <p class="text-sm text-gray-800">
+                  <strong>Acción:</strong>
+                  {{ obs.accion }}
+                </p>
+
+                <p class="text-sm text-gray-800">
+                  <strong>Detalle:</strong>
+                  {{ obs.detalles || 'Sin detalle' }}
                 </p>
               </div>
             </li>
+
           </ul>
         </div>
       </div>
@@ -226,6 +247,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import Navbar from '../Navbar.vue';
 import Sidebar from '../Sidebar.vue';
 import datosService from "../../services/docenteService";
+import { alertaConfirmacion, alertaError, alertaExito } from '../../utils/alertas';
 const isSidebarOpen = ref(false);
 const busqueda = ref('');
 const filtroEstado = ref('');
@@ -234,7 +256,7 @@ const modalTipo = ref('');
 const observaciones = ref('');
 const perfilSeleccionado = ref(null);
 const mostrarHistorial = ref(false);
-const perfilHistorial = ref(null);
+const historialProyecto = ref([]);
 
 // Paginación
 const paginaActual = ref(1);
@@ -282,8 +304,9 @@ const formatearEstado = (estado) =>
   en_progreso: 'En Progreso',
   perfil_aprobado: 'Perfil Aprobado',
   perfil_observado: 'Perfil Observado',
+  perfil_pendiente: 'Perfil Pendiente',
   finalizado: 'Finalizado',
-}[estado] || 'Perfil en Aprobado');
+}[estado] || estado);
 
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
@@ -294,25 +317,41 @@ const evaluarPerfil = (perfil, tipo) => {
   mostrarModal.value = true;
   perfilSeleccionado.value = perfil;
   observaciones.value = '';
-
 };
 
 const confirmarEvaluacion = async () => {
   try {
     if (!observaciones.value.trim()) return;
     const perfil = perfilSeleccionado.value;
+    
     perfil.observaciones_estado = modalTipo.value === 'aprobado' ? 'perfil_aprobado' : 'perfil_observado';
     perfil.observaciones_actualizado_en = new Date().toISOString();
-    perfil.observaciones_tipo_tutoria = perfil.observacioneshistorial[0].tipo_tutoria;
+    perfil.observaciones_tipo_tutoria = perfil.tipotutoria;
     perfil.observaciones_accion = modalTipo.value === 'aprobado' ? 'Aprobar Perfil' : 'Observación de Perfil';
     perfil.observaciones_fecha = new Date().toISOString();
     perfil.observaciones_detalle = observaciones.value;
     perfil.observaciones_corregido = modalTipo.value === 'aprobado' ? true : false;
-
-    const response = await datosService.registrarEvaluacionPerfil(perfil);
-
-    await obtenerPerfiles();
-    cerrarModal();
+    
+    const confirmacion = await alertaConfirmacion({
+      title: '¿Esta seguro de enviar la observacion?',
+      text: 'Una vez guardado, no podrás editarlo.',
+      confirmText: 'Sí, guardar',
+      cancelText: 'Cancelar'
+    })
+    if (confirmacion.isConfirmed) {
+      try {
+        const response = await datosService.registrarEvaluacionPerfil(perfil);
+        if (response.registrado) {
+          alertaExito(response.message)
+          obtenerPerfiles();
+          cerrarModal();
+        } else {
+          alertaError(response.message)
+        }
+      } catch (error) {
+        alertaError(error);
+      }
+    }
   } catch (error) {
     console.error('Error al cargar los perfiles:', error);
   }
@@ -325,13 +364,19 @@ const cerrarModal = () => {
   perfilSeleccionado.value = null;
 };
 
-const verHistorial = (perfil) => {
-  perfilHistorial.value = perfil;
-  mostrarHistorial.value = true;
+const verHistorial = async(idProyecto) => {
+  try {
+    const response = await datosService.lsitaHistorialProyecto(idProyecto);
+    historialProyecto.value = response;
+    mostrarHistorial.value = true;
+  } catch (error) {
+    console.log(error);
+  }
+ 
 };
 
 const cerrarHistorial = () => {
-  perfilHistorial.value = null;
+  historialProyecto.value = null;
   mostrarHistorial.value = false;
 };
 

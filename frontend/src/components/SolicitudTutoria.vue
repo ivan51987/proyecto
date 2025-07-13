@@ -41,24 +41,25 @@
               <div class="space-y-6">
 
                 <!-- Tipo de Tutoría -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de Tutoría
-                  </label>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button v-for="tipo in tiposTutoria" :key="tipo.id" type="button"
-                      @click="solicitud.tipoTutoria = tipo.id" :class="[
-                        'p-4 border rounded-lg text-left',
-                        solicitud.tipoTutoria === tipo.id
-                          ? 'border-primary-500 bg-primary-50'
-                          : 'border-gray-200 hover:border-primary-300'
-                      ]">
-                      <div class="font-medium">{{ tipo.nombre }}</div>
-                      <div class="text-sm text-gray-500">{{ tipo.descripcion }}</div>
-                    </button>
+                <div v-if="informacionProyecto.length > 0" class="space-y-4">
+                  <div v-for="(proyecto, index) in informacionProyecto" :key="index"
+                    class="p-4 border rounded-lg bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">
+                      Proyecto Registrado {{ informacionProyecto.length > 1 ? `#${index + 1}` : '' }}
+                    </h3>
+                    <p><strong>Título:</strong> {{ proyecto.titulo }}</p>
+                    <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+                    <p><strong>Área:</strong> {{ proyecto.area }}</p>
+                    <p><strong>Fecha de inicio:</strong> {{ new Date(proyecto.fecha_inicio).toLocaleDateString() }}</p>
+                    <p><strong>Tipo de Tutoría:</strong> {{ proyecto.tipotutoria }}</p>
                   </div>
                 </div>
 
+                <div v-else class="text-gray-500 italic">
+                  No hay proyectos disponibles para este estudiante.
+                </div>
+
+                <input type="hidden" name="tipotutoria" v-model="solicitud.tipotutoria" />
                 <!-- Detalles de la Solicitud -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -134,54 +135,47 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Navbar from './Navbar.vue';
 import Sidebar from './Sidebar.vue';
 import { useRoute } from 'vue-router';
 import { useTutorStore } from '../stores/tutorStore';
 import { useAuthStore } from "../stores/useAuthStore";
-import datosServicios  from '../services/docenteService';
-
-
+import datosServicios from '../services/docenteService';
+import datosProyecto from '../services/estudianteService';
+import { alertaConfirmacion, alertaError, alertaExito } from '../utils/alertas';
 const isSidebarOpen = ref(false);
 const isLoading = ref(false);
 const solicitudEnviada = ref(false);
 const route = useRoute();
 const { tutorSeleccionado } = useTutorStore();
 const authStore = useAuthStore();
+const informacionProyecto = ref([]);
 
-const tiposTutoria = [
-  {
-    id: 'tesis',
-    nombre: 'Tesis',
-    descripcion: 'Trabajo de investigación, presentada públicamente, para obtener un grado académico universitario, producto del estudio teórico de un tema original, pudiendo ajustarse a cualquier modelo o paradigma de investigación y que, realizada con rigor metodológico, debe contener, en sus conclusiones, aspectos propositivos.'
-  },
-  {
-    id: 'proyecto_pet',
-    nombre: 'Programa especial de titulación(P.E.T.)',
-    descripcion: 'Es el trabajo de investigación, programación y diseño de solución a algún problema o situación, aplicando estrategias apropiadas.'
-  },
-  {
-    id: 'proyecto_grado_dirigido',
-    nombre: 'Proyecto de Grado Dirigido',
-    descripcion: 'Es la ejecución y evaluación del diseño de un proyecto en diferentes instituciones fuera de la universidad respaldada por un convenio interinstitucional.'
-  },
-  {
-    id: 'diplomado',
-    nombre: 'Proyecto de Grado por Diplomado',
-    descripcion: 'Modalidad de graduación que se rige en el aprovechamiento académico obtenido por el estudiante durante su permanencia en un programa de formación a nivel de licenciatura, expresado en indicadores cuantitativos (promedios y mediana) e indicadores cualitativos (tiempo de duración de estudios, aprobación en primera instancia, no abandonos).'
+const listarProyectoRegistrado = async () => {
+  try {
+    const response = await datosProyecto.listarProyectoRegistrado();
+    informacionProyecto.value = response
+    if (informacionProyecto.value.length > 0) {
+
+      solicitud.value.tipotutoria = informacionProyecto.value[0].tipotutoria
+      console.log(solicitud.value.tipotutoria);
+      
+    }
+  } catch (error) {
+    console.log(error);
   }
-];
+
+}
 
 const solicitud = ref({
-  tipoTutoria: '',
+  tipotutoria: '',
   detalles: '',
   archivo: null
 });
 
 const esFormularioValido = computed(() => {
   return (
-    solicitud.value.tipoTutoria &&
     solicitud.value.detalles.trim().length > 0
   );
 });
@@ -196,36 +190,43 @@ const enviarSolicitud = async () => {
 
   try {
     isLoading.value = true;
-
-    // Simulación de envío
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Aquí iría la lógica real de envío
     const userName = authStore.user;
     const formData = new FormData();
+    console.log(solicitud.value.tipotutoria);
+    
     formData.append('tutorId', tutorSeleccionado.id);
-    formData.append('tipoTutoria', solicitud.value.tipoTutoria);
+    formData.append('tipotutoria', solicitud.value.tipotutoria);
     formData.append('detalles', solicitud.value.detalles);
-     
 
     const archivo = solicitud.value.archivo;
-        
+
     if (archivo) {
       formData.append('documento', archivo);
-    }    
-
-    try {
-      const response = await datosServicios.registrarSolicitud(formData);
-      console.log('Solicitud enviada:', response);
-      
-    } catch (error) {
-      console.error('Error al cargar los docentes:', error);
     }
 
-    solicitudEnviada.value = true;
+    const confirmacion = await alertaConfirmacion({
+      title: '¿Deseas solicitar la tutoria registro?',
+      text: 'Una vez guardado, no podrás editarlo.',
+      confirmText: 'Sí, guardar',
+      cancelText: 'Cancelar'
+    })
+    if (confirmacion.isConfirmed) {
+      try {
+        const response = await datosServicios.registrarSolicitud(formData);
+        if (response.registrado) {
+          alertaExito(response.message)
+          solicitudEnviada.value = true;
+        } else {
+          alertaError(response.message)
+        }
+      } catch (error) {
+        alertaError(error);
+      }
+    }
   } catch (error) {
     console.error('Error al enviar la solicitud:', error);
-    // Aquí podrías mostrar un mensaje de error
   } finally {
     isLoading.value = false;
   }
@@ -233,7 +234,7 @@ const enviarSolicitud = async () => {
 
 const reiniciarFormulario = () => {
   solicitud.value = {
-    tipoTutoria: '',
+    tipotutoria: '',
     detalles: '',
     archivos: []
   };
@@ -244,4 +245,7 @@ const reiniciarFormulario = () => {
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
+onMounted(() => {
+  listarProyectoRegistrado();
+});
 </script>
