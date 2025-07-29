@@ -14,5 +14,7 @@ router.post("/entregar-borrador", auth, roles("entregarBorradorProyecto"), contr
 router.put("/corregir-borrador", auth, roles("corregirBorradorObservaciones"), controller.corregirBorrador);
 router.get("/historial", auth, controller.historialAcciones); 
 router.get("/proyecto-registrado", auth, controller.proyectoRegistrado);
+router.get("/tribunales-proyecto", auth, controller.listaTribunalesProyecto);
+router.get("/lista-observaciones-tribunal", auth, controller.listaObservacionesTribunal);
 
 module.exports = router;

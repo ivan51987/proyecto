@@ -1,5 +1,30 @@
 [
   {
+  "id": "4b0e660e-d7a4-44f2-9c63-94ddcc12a688",
+  "username": "iflores",
+  "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+  "email": "iflores@fis.uni.edu.pe",
+  "role": "estudiante",
+  "fullName": "Ivan Flores Flores",
+  "carrera": "Ingeniería de Informática",
+  "matricula": "SIS-2023-001",
+  "ciclo": "VII",
+  "codigo": "SIS-2023-001"
+},
+  {
+  "id": "4b0e660e-d7a4-44f2-9c63-94ddcc12a680",
+  "username": "ctorrez",
+  "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",
+  "email": "ctorrez@fis.uni.edu.pe",
+  "role": "estudiante",
+  "fullName": "Claudia Torrez Sahonero",
+  "carrera": "Ingeniería de Sistemas",
+  "matricula": "SIS-2023-001",
+  "ciclo": "VII",
+  "cursos": ["SIS-401", "SIS-410"],
+  "codigo": "SIS-2023-001"
+},
+  {
     "id": "4b0e660e-d7a4-44f2-9c63-94ddcc12a68e",
     "username": "lrodriguezs",
     "password": "$2b$10$KrY3vDs85CDZ9k89b2SrW.xF5neqMCIeRiFXpMvvdubNeopbSCufW",

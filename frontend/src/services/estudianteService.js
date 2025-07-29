@@ -44,6 +44,51 @@ const estudianteService = {
       console.error("Error en listar proyecto", error.message);
       throw error;
     }
+  },
+
+  async tribunalesProyecto(){
+    try {
+      const token = localStorage.getItem("token");
+      const response =await fetch(
+        `${API_CONFIG.BASE_URL}/estudiantes/tribunales-proyecto`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data =await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error en listar de tribuales por proyecto", error.message);
+      throw error;
+    }
+  },
+
+  async observacionTribunalProyecto(proyecto_id, revisado_id, revisado_en){
+    try {
+      const token = localStorage.getItem("token");
+      console.log(proyecto_id, revisado_id, revisado_en);
+      
+
+      const response =await fetch(
+        `${API_CONFIG.BASE_URL}/estudiantes/lista-observaciones-tribunal?proyecto_id=${proyecto_id}&revisado_id=${revisado_id}&revisado_en=${revisado_en}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data =await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error en listar de tribuales por proyecto", error.message);
+      throw error;
+    }
   }
 };
 

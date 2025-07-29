@@ -1,10 +1,9 @@
 <template>
     <div class="min-h-screen bg-gray-100">
-        < <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-gray-100">
             <Navbar @toggle-sidebar="toggleSidebar" />
             <Sidebar :is-open="isSidebarOpen" />
 
-            <!-- Main -->
             <main class="pt-16 transition-all duration-300" :class="['md:ml-60', isSidebarOpen ? 'ml-60' : 'ml-0']">
                 <div class="px-4 sm:px-6 lg:px-8 py-8">
                     <div class="max-w-7xl mx-auto">
@@ -23,4 +22,9 @@
 import { ref, computed, onMounted } from 'vue';
 import Navbar from '../Navbar.vue';
 import Sidebar from '../Sidebar.vue';
+
+const toggleSidebar = () => {
+  isSidebarOpen.value = !isSidebarOpen.value;
+};
+const isSidebarOpen = ref(false);
 </script>

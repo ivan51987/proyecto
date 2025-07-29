@@ -22,7 +22,6 @@ import ObservacionesPerfil from "../components/docente/ObservacionesPerfil.vue";
 import EvaluacionBorrador from "../components/docente/EvaluacionBorrador.vue";
 import ObservacionesBorrador from "../components/docente/ObservacionesBorrador.vue";
 import EvaluacionDefensa from "../components/docente/EvaluacionDefensa.vue";
-import ConclusionProyecto from "../components/docente/ConclusionProyecto.vue";
 import SeguimientoProyectoRealTime from "../components/director/SeguimientoProyectoRealTime.vue";
 
 //Director
@@ -32,6 +31,9 @@ import Reportes from "../components/director/Reportes.vue";
 import CronogramaDefensas from "../components/director/CronogramaDefensas.vue";
 
 import NotificacionObservaciones from "../components/NotificacionObservaciones.vue";
+import RegistrarFechaDefensa from "../components/director/RegistrarFechaDefensa.vue";
+import ObservacionPerfilTribunal from "../components/postulante/ObservacionPerfilTribunal.vue";
+
 const routes = [
   {
     path: "/",
@@ -89,6 +91,16 @@ const routes = [
     name: "SeguimientoProyecto",
     component: SeguimientoProyecto,
   },
+  {
+    path: '/observaciones-perfil-tribunal/:id_proyecto/:id_docente/:revisado_en',
+    name: 'ObservacionesPerfilTribunal',
+    component: ObservacionPerfilTribunal,
+    props: route => ({
+      proyecto_id: route.params.proyecto_id,
+      revisado_id: route.params.revisado_id,
+      revisado_en: route.query.revisado_en || 'borrador'
+    })
+  },
 
   // docente
   {
@@ -144,16 +156,20 @@ const routes = [
     component: CronogramaDefensas,
   },
   {
+    path: "/cronograma/:id",
+    name: "Cronograma",
+    component: CronogramaDefensas,
+  },
+  {
     path: "/registrar-conclusion",
     name: "RegistrarConclusion",
     component: RegistrarConclusion,
   },
   {
-    path: "/conclusion-proyecto",
-    name: "ConclusionProyecto",
-    component: ConclusionProyecto,
+    path: "/registrar-fecha-defensa",
+    name: "RegistrarFechaDefensa",
+    component: RegistrarFechaDefensa,
   },
-
   {
     path: "/generar-reporte",
     name: "GenerarReporte",

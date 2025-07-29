@@ -299,3 +299,115 @@ exports.proyectoRegistrado = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// 10. Lista de los tribunales asignados del proyecto
+exports.listaTribunalesProyecto = async (req, res) => {
+  try {
+      const usersData = JSON.parse(
+          fs.readFileSync(path.join(__dirname, "../data/users.json"), "utf8")
+        );
+    
+      const { rows: tribunalesProyecto } = await db.query(
+      `
+      WITH enumerados AS (
+        select
+          pt.estudiante_id, 
+          pt.docentes_id,
+          pt.proyecto_id,
+          p.tipotutoria,
+          p.titulo,
+          ROW_NUMBER() OVER (ORDER BY pt.docentes_id) AS num
+        FROM public.proyecto_tribunal pt
+        inner join public.proyectos p on pt.proyecto_id = p.id 
+        WHERE pt.estudiante_id = $1
+      )
+      select
+        MAX(estudiante_id::text) as estudiante_id, 
+        MAX(proyecto_id::text) AS proyecto_id,
+        MAX(tipotutoria::text) as tipotutoria,
+        MAX(titulo::text) as titulo,
+        MAX(CASE WHEN num = 1 THEN docentes_id::text END) AS docente_1_id,
+        MAX(CASE WHEN num = 2 THEN docentes_id::text END) AS docente_2_id,
+        MAX(CASE WHEN num = 3 THEN docentes_id::text END) AS docente_3_id
+      FROM enumerados;
+    `,
+      [req.user.id]
+    );
+        
+    const proyectosConEstudiante = tribunalesProyecto.map((proyecto) => {
+      const estudiante = usersData.find(
+        (user) => user.id === proyecto.estudiante_id && user.role === "estudiante"
+      );
+
+      const docente1 = usersData.find(
+        (user) => user.id === proyecto.docente_1_id && user.role === "docente"
+      );
+      const docente2 = usersData.find(
+        (user) => user.id === proyecto.docente_2_id && user.role === "docente"
+      );
+      const docente3 = usersData.find(
+        (user) => user.id === proyecto.docente_3_id && user.role === "docente"
+      );
+
+      return {
+        ...proyecto,
+        estudiante: estudiante
+          ? {
+            nombre: estudiante.fullName,
+            email: estudiante.email,
+            carrera: estudiante.carrera,
+          }
+          : null,
+        docentes: [
+          docente1 && {
+            nombre: docente1.fullName,
+            email: docente1.email,
+            area: docente1.area,
+            id: docente1.id
+          },
+          docente2 && {
+            nombre: docente2.fullName,
+            email: docente2.email,
+            area: docente2.area,
+            id: docente2.id
+          },
+          docente3 && {
+            nombre: docente3.fullName,
+            email: docente3.email,
+            area: docente3.area,
+            id: docente3.id
+          },
+        ].filter(Boolean),
+      };
+    });
+
+    res.json(proyectosConEstudiante);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 11. Lista observaciones del tribunal del perfil
+exports.listaObservacionesTribunal = async (req, res) => { 
+  try {
+    const {proyecto_id, revisado_id, revisado_en}=req.query;
+    
+    const result = await db.query(
+      `
+      select p.titulo, p.descripcion, p.area, pp.fecha_revision, ha.accion, ha.detalles, ha.revisado_en, ha.corregido, ha.id   
+      from public.proyectos p 
+      inner join public.perfiles_proyecto pp on p.id = pp.proyecto_id 
+      inner join public.historial_acciones ha on p.id = ha.proyecto_id and pp.revisado_por = ha.usuario_id 
+      where p.estudiante_id=$1
+      and pp.proyecto_id =$2 
+      and pp.revisado_por =$3
+      and ha.revisado_en =$4
+    `,
+      [req.user.id, proyecto_id, revisado_id, revisado_en]
+    );
+        
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

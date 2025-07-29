@@ -411,13 +411,7 @@ exports.listarProyectosHistorialObservarBorrador = async (req, res) => {
           ON bp.proyecto_id = p.id AND bp.revisado_por = pt.docentes_id
         WHERE 
           pt.docentes_id = $1
-          AND (bp.estado IS NULL OR bp.estado = 'perfil_aprobado' or bp.estado='borrador_observado')
-          AND (
-          SELECT COUNT(DISTINCT bp2.revisado_por)
-          FROM borradores_proyecto bp2  
-          WHERE bp2.proyecto_id = p.id AND bp2.estado = 'perfil_aprobado' or bp.estado='borrador_observado'
-        ) = 3
-        `,
+          AND (bp.estado IS NULL OR bp.estado = 'perfil_aprobado' or bp.estado='borrador_observado')`,
       [req.user.id]
     );
 

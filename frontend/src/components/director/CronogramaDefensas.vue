@@ -16,10 +16,11 @@
       </div>
     </main>
 
-    <!-- Modal Ver Evento -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 class="text-xl font-semibold mb-4"><strong>Postulante:</strong>{{ selectedEvent.estudiante }}</h3>
+        <h3 class="text-xl font-semibold mb-4">
+          <strong>Postulante:</strong> {{ selectedEvent.estudiante }}
+        </h3>
         <p class="mb-2"><strong>Lugar de la defensa:</strong> {{ selectedEvent.lugar }}</p>
         <p class="mb-2"><strong>Tema de la defensa:</strong> {{ selectedEvent.titulo }}</p>
         <p class="mb-2"><strong>Fecha:</strong> {{ formatDate(selectedEvent.fechaHora) }}</p>
@@ -29,56 +30,6 @@
         </p>
         <div class="text-right mt-4">
           <button @click="closeModal" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Cerrar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Crear Evento -->
-    <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 class="text-xl font-semibold mb-4">Registrar Nueva Defensa</h3>
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Seleccionar Proyecto</label>
-          <select v-model="proyectoSeleccionado" @change="cargarDatosProyecto"
-            class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
-            <option value="">Seleccione un proyecto</option>
-            <option v-for="(proyecto, index) in calendarOptions.events" :key="index" :value="index">
-              {{ proyecto.extendedProps.titulo }} - {{ proyecto.extendedProps.estudiante }}
-            </option>
-          </select>
-        </div>
-
-        <div class="mb-2">
-          <label class="block text-sm font-medium mb-1">Fecha seleccionada:</label>
-          <p class="text-gray-700">{{ newEventDate }}</p>
-        </div>
-
-        <div class="mb-2">
-          <label class="block text-sm font-medium mb-1">Hora (HH:MM)</label>
-          <input v-model="newEventTime" type="time" class="w-full border rounded px-3 py-2" required />
-        </div>
-
-        <div class="mb-2">
-          <label class="block text-sm font-medium mb-1">Estudiante</label>
-          <input :value="datosProyecto?.extendedProps.estudiante || ''" class="w-full border rounded px-3 py-2 bg-gray-100" readonly />
-        </div>
-
-        <div class="mb-2">
-          <label class="block text-sm font-medium mb-1">Lugar</label>
-          <input v-model="newEventData.lugar" class="w-full border rounded px-3 py-2" required />
-        </div>
-
-        <div class="mb-2">
-          <label class="block text-sm font-medium mb-1">Tema</label>
-          <input :value="datosProyecto?.extendedProps.titulo || ''" class="w-full border rounded px-3 py-2 bg-gray-100" readonly />
-        </div>
-
-        <p v-if="errorMessage" class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
-
-        <div class="text-right mt-4">
-          <button @click="showCreateModal = false" class="px-4 py-2 mr-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-          <button @click="addNewEvent" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Guardar</button>
         </div>
       </div>
     </div>
@@ -116,70 +67,53 @@ const openModal = (eventInfo) => {
   };
 
   const now = new Date();
-  if (fechaHora < now) {
-    isPastEvent.value = true;
-    const diffTime = Math.abs(now - fechaHora);
-    daysAgo.value = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  } else {
-    isPastEvent.value = false;
-    daysAgo.value = 0;
-  }
+  isPastEvent.value = fechaHora < now;
+  daysAgo.value = isPastEvent.value
+    ? Math.floor(Math.abs(now - fechaHora) / (1000 * 60 * 60 * 24))
+    : 0;
 
   showModal.value = true;
 };
 const closeModal = () => showModal.value = false;
 
-const showCreateModal = ref(false);
-const newEventDate = ref('');
-const newEventTime = ref('');
-const newEventData = ref({ lugar: '' });
-const errorMessage = ref('');
-const proyectoSeleccionado = ref('');
-const datosProyecto = ref(null);
+const formatDate = (date) =>
+  date.toLocaleDateString('es-BO', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 
-const cargarDatosProyecto = async () => {
+const formatTime = (date) =>
+  date.toLocaleTimeString('es-BO', {
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+
+const listaProyectos = ref([]);
+
+const defensasProgramadas = async () => {
   try {
-    const response = await datosProyectosService.listarProyectos();
-    datosProyecto.value = response;
+    const response = await datosProyectosService.listarDefensasProgramas();
+    listaProyectos.value = response;
+
+    const eventos = response.map(proyecto => {
+      const fecha = proyecto.fecha.split('T')[0]; 
+      const hora = proyecto.hora; 
+      const fechaHora = `${fecha}T${hora}`; 
+
+      return {
+        title: `Defensa: ${proyecto.estudiante.nombre}`,
+        start: fechaHora,
+        extendedProps: {
+          estudiante: proyecto.estudiante.nombre,
+          lugar: proyecto.lugar,
+          titulo: proyecto.titulo
+        }
+      };
+    });
+
+    calendarOptions.value.events = eventos;
   } catch (error) {
     console.error('Error al cargar los proyectos:', error);
   }
 };
-
-const addNewEvent = () => {
-  if (!newEventTime.value || !datosProyecto.value?.extendedProps.estudiante || !newEventData.value.lugar || !datosProyecto.value?.extendedProps.titulo) {
-    errorMessage.value = 'Por favor complete todos los campos.';
-    return;
-  }
-
-  const fullDateTime = `${newEventDate.value}T${newEventTime.value}`;
-  const newDate = new Date(fullDateTime);
-
-  const duplicate = calendarOptions.value.events.some(event => {
-    return new Date(event.start).toISOString().slice(0, 16) === newDate.toISOString().slice(0, 16);
-  });
-
-  if (duplicate) {
-    errorMessage.value = 'Ya existe una defensa registrada en esta fecha y hora.';
-    return;
-  }
-
-  calendarOptions.value.events.push({
-    title: `Defensa: ${datosProyecto.value.extendedProps.estudiante}`,
-    start: fullDateTime,
-    extendedProps: {
-      estudiante: datosProyecto.value.extendedProps.estudiante,
-      lugar: newEventData.value.lugar,
-      titulo: datosProyecto.value.extendedProps.titulo,
-    }
-  });
-
-  showCreateModal.value = false;
-  errorMessage.value = '';
-};
-
-const formatDate = (date) => date.toLocaleDateString('es-BO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-const formatTime = (date) => date.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false });
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin],
@@ -191,65 +125,18 @@ const calendarOptions = ref({
     center: 'title',
     right: 'dayGridMonth,dayGridWeek',
   },
-  events: [
-    {
-      title: 'Defensa: Ana García',
-      start: '2025-07-01T10:00:00',
-      extendedProps: {
-        estudiante: 'Ana García',
-        lugar: 'Sala A-101',
-        titulo: 'Sistema de Gestión Académica',
-      }
-    },
-    {
-      title: 'Defensa: Carlos López',
-      start: '2025-07-10T14:00:00',
-      extendedProps: {
-        estudiante: 'Carlos López',
-        lugar: 'Sala B-202',
-        titulo: 'Plataforma E-learning',
-      }
-    },
-    {
-      title: 'Defensa: María Pérez',
-      start: '2025-06-15T09:00:00',
-      extendedProps: {
-        estudiante: 'María Pérez',
-        lugar: 'Sala C-303',
-        titulo: 'Aplicación Móvil de Salud',
-      }
-    },
-    {
-      title: 'Defensa: Luis Fernández',
-      start: '2025-04-20T11:00:00',
-      extendedProps: {
-        estudiante: 'Luis Fernández',
-        lugar: 'Sala D-404',
-        titulo: 'Sistema de Inventario Inteligente',
-      }
-    }
-  ],
+  events: [], 
   eventClick: openModal,
-  dateClick(info) {
-    newEventDate.value = info.dateStr;
-    newEventTime.value = '';
-    newEventData.value = { lugar: '' };
-    proyectoSeleccionado.value = '';
-    datosProyecto.value = null;
-    errorMessage.value = '';
-    showCreateModal.value = true;
-  },
   eventDidMount(info) {
     const now = new Date();
     const eventDate = new Date(info.event.start);
     const el = info.el;
-
     if (eventDate < now) {
-      el.style.backgroundColor = '#9ca3af';
+      el.style.backgroundColor = '#9ca3af'; 
       el.style.borderColor = '#9ca3af';
       el.style.color = 'white';
     } else {
-      el.style.backgroundColor = '#3b82f6';
+      el.style.backgroundColor = '#3b82f6'; 
       el.style.borderColor = '#3b82f6';
       el.style.color = 'white';
     }
@@ -257,6 +144,6 @@ const calendarOptions = ref({
 });
 
 onMounted(() => {
-  cargarDatosProyecto();
+  defensasProgramadas();
 });
 </script>
