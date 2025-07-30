@@ -1,0 +1,165 @@
+
+select *
+from perfiles_proyecto pp
+inner join proyecto_tribunal pt on pp.revisado_por = pt.docentes_id
+inner join proyectos p on pp.proyecto_id = p.id
+where pp.revisado_por ='cc2594e0-4f0c-4b9f-87de-c6b4a981ce3e'
+
+ALTER TABLE public.notificaciones
+DROP CONSTRAINT IF EXISTS notificaciones_tipo_check;
+
+ALTER TABLE public.notificaciones
+ADD CONSTRAINT notificaciones_tipo_check
+CHECK (
+  (tipo)::text = ANY (
+    ARRAY[
+      'observacion'::text,
+      'aprobacion'::text,
+      'solicitud'::text,
+      'recordatorio'::text,
+      'general'::text,
+      'asignar'::text
+    ]
+  )
+);
+
+ALTER TABLE public.proyectos
+DROP CONSTRAINT IF EXISTS proyectos_estado_check;
+
+ALTER TABLE public.proyectos
+ADD CONSTRAINT proyectos_estado_check
+CHECK (
+  (estado)::text = ANY (
+    ARRAY[
+      'en_progreso'::text,
+      'perfil_pendiente'::text,
+      'perfil_observado'::text,
+      'perfil_aprobado'::text,
+      'borrador_pendiente'::text,
+      'borrador_observado'::text,
+      'borrador_aprobado'::text,
+      'listo_defensa'::text,
+      'concluido'::text,
+      'aprobado'::text,
+      'rechazado'::text,
+      'asignar_tribunal'::text 
+    ]
+  )
+);
+
+
+
+
+select p.titulo, p.descripcion, p.fecha_inicio, p.area, p.tipotutoria 
+from public.proyectos p 
+where p.estado = 'asignar_tribunal'
+and p.estudiante_id ='4b0e660e-d7a4-44f2-9c63-94ddcc12a68e'
+
+SELECT 
+  p.id AS proyecto_id,
+  p.titulo,
+  pp.estado,
+  p.fecha_inicio,
+  p.descripcion,
+  pp.id AS perfil_id,
+  pt.docentes_id,
+  p.estudiante_id,
+  p.tutor_id 
+FROM proyecto_tribunal pt
+INNER JOIN proyectos p ON pt.proyecto_id = p.id
+LEFT JOIN perfiles_proyecto pp 
+  ON pp.proyecto_id = p.id AND pp.revisado_por = pt.docentes_id
+WHERE 
+--pt.docentes_id = '19215fb3-190a-4e4f-86a7-f99aa8a93e72'
+--pt.docentes_id = '5d18197a-0392-4218-9cf1-ba4da82598f7'
+pt.docentes_id = 'cc2594e0-4f0c-4b9f-87de-c6b4a981ce3e'
+  AND (pp.estado IS NULL OR pp.estado = 'perfil_pendiente');
+
+
+-- 1. Numeramos los docentes de cada tribunal por proyecto
+WITH docentes_numerados AS (
+  SELECT 
+    proyecto_id,
+    docentes_id,
+    ROW_NUMBER() OVER (PARTITION BY proyecto_id ORDER BY docentes_id) AS orden
+  FROM proyecto_tribunal
+),
+
+-- 2. Pivotamos los docentes en columnas
+docentes_pivot AS (
+  SELECT 
+    proyecto_id,
+    MAX(CASE WHEN orden = 1 THEN docentes_id END) AS docente1_id,
+    MAX(CASE WHEN orden = 2 THEN docentes_id END) AS docente2_id,
+    MAX(CASE WHEN orden = 3 THEN docentes_id END) AS docente3_id
+  FROM docentes_numerados
+  GROUP BY proyecto_id
+)
+
+-- 3. Consulta final
+WITH docentes_en_columnas AS (
+  SELECT 
+    p.id AS proyecto_id,
+    p.titulo,
+    p.fecha_inicio,
+    p.descripcion,
+    p.estudiante_id,
+    p.tutor_id,
+    p2.docentes_id,
+    ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY p2.docentes_id) AS fila_docente
+  FROM proyectos p
+  INNER JOIN proyecto_tribunal p2 ON p.id = p2.proyecto_id
+  WHERE (
+    SELECT COUNT(DISTINCT bp2.revisado_por)
+    FROM borradores_proyecto bp2
+    WHERE bp2.proyecto_id = p.id AND bp2.estado = 'borrador_aprobado'
+  ) = 3
+)
+SELECT 
+  proyecto_id,
+  titulo,
+  fecha_inicio,
+  descripcion,
+  estudiante_id,
+  tutor_id,
+  MAX(CASE WHEN fila_docente = 1 THEN docentes_id::text END) AS docente_1_id,
+  MAX(CASE WHEN fila_docente = 2 THEN docentes_id::text END) AS docente_2_id,
+  MAX(CASE WHEN fila_docente = 3 THEN docentes_id::text END) AS docente_3_id
+FROM docentes_en_columnas
+GROUP BY proyecto_id, titulo, fecha_inicio, descripcion, estudiante_id, tutor_id;
+
+
+
+
+
+
+
+
+select ha.fecha, ha.corregido, ha.tipo_tutoria, ha.usuario_id, ha.tutor_id, ha.accion, ha.detalles
+from public.historial_acciones ha 
+where ha.proyecto_id ='f7615055-625a-4ebe-b9b2-6444345a48e1'
+
+
+
+ SELECT p.id as proyecto_id, p.estudiante_id, p.tutor_id, p.area, p.titulo, p.tipotutoria
+      FROM proyectos p 
+      WHERE p.estado = 'en_progreso'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM proyecto_tribunal pt
+          WHERE pt.proyecto_id = p.id
+        )
+        
+ALTER TABLE public.historial_acciones
+ADD COLUMN revisado_en VARCHAR(20) CHECK (revisado_en IN ('perfil', 'borrador'));
+
+        
+        
+ select p.titulo, p.descripcion, p.area, pp.fecha_revision, ha.accion,ha.corregido, ha.detalles, ha.revisado_en, p.estudiante_id, ha.id   
+ from public.proyectos p 
+ inner join public.perfiles_proyecto pp on p.id = pp.proyecto_id 
+ inner join public.historial_acciones ha on p.id = ha.proyecto_id and pp.revisado_por = ha.usuario_id 
+ where pp.proyecto_id ='f7615055-625a-4ebe-b9b2-6444345a48e1' 
+ and pp.revisado_por ='cc2594e0-4f0c-4b9f-87de-c6b4a981ce3e'    
+ and ha.revisado_en ='perfil'
+ 
