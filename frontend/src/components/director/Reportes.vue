@@ -53,7 +53,13 @@
                                             <td class="px-4 py-2 border">{{ proyecto.titulo }}</td>
                                             <td class="px-4 py-2 border">{{ proyecto.tutor }}</td>
                                             <td class="px-4 py-2 border">{{ proyecto.tipotutoria }}</td>
-                                            <td class="px-4 py-2 border" v-for="tribunal in proyecto.tribunales">{{ tribunal.fullName }}</td>
+                                            <td class="px-4 py-2 border">
+                                                <ul class="list-disc list-inside">
+                                                    <li v-for="tribunal in proyecto.tribunales" :key="tribunal.id">
+                                                        {{ tribunal.fullName }}
+                                                    </li>
+                                                </ul>
+                                            </td>
                                         </tr>
                                         <tr v-if="listaProyectos.length === 0">
                                             <td colspan="4" class="text-center py-4 text-gray-500">No se encontraron
@@ -89,7 +95,7 @@ const buscarDatosReporte = async () => {
     try {
         const response = await datosProyectosService.reporteProyecto(fechaInicio.value, fechaFin.value);
         console.log('Datos del reporte:', response);
-        
+
         listaProyectos.value = response;
     } catch (error) {
         console.error('Error al cargar los proyectos:', error);
