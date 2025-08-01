@@ -1,6 +1,7 @@
 const db = require("../config/db");
 const fs = require("fs");
 const path = require("path");
+const PDFDocument = require('pdfkit');
 
 // 1. Registrar conclusión del proyecto
 exports.registrarConclusion = async (req, res) => {
@@ -521,7 +522,7 @@ exports.listaSeguimientoProyectos = async (req, res) => {
             email: tutor.email,
             area: tutor.area,
           }
-        : null,
+          : null,
         docentes: [
           docente1 && {
             nombre: docente1.fullName,
@@ -571,7 +572,7 @@ exports.listaHistoricoProyectos = async (req, res) => {
 
     const proyectosConDetalles = proyectos.map((proyecto) => {
       const usuario = usersData.find((user) => user.id === proyecto.usuario_id);
-      
+
       const tutor = usersData.find(
         (user) => user.id === proyecto.tutor_id && user.role === "docente"
       );
@@ -579,7 +580,7 @@ exports.listaHistoricoProyectos = async (req, res) => {
       let estudiante = null;
       let docente = null;
       let director = null;
-      
+
       if (usuario) {
         switch (usuario.role) {
           case "estudiante":
@@ -601,7 +602,7 @@ exports.listaHistoricoProyectos = async (req, res) => {
               area: usuario.area,
             };
             break;
-          case "director":            
+          case "director":
             director = {
               nombre: usuario.fullName,
               email: usuario.email,
@@ -619,7 +620,7 @@ exports.listaHistoricoProyectos = async (req, res) => {
             nombre: tutor.fullName,
             email: tutor.email,
           }
-        : null,
+          : null,
         docente,
         director,
       };
@@ -630,4 +631,232 @@ exports.listaHistoricoProyectos = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+//11 reportes
+exports.generarReporteProyectos = async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+    console.log("Fechas de reporte:", fechaInicio, fechaFin);
+    
+    const { rows: resultado } = await db.query(`
+      SELECT 
+        p.titulo,
+        p.estudiante_id,
+        p.tipotutoria,
+        p.tutor_id,
+        tribunal.tribunal_1_id::uuid,
+        tribunal.tribunal_2_id::uuid,
+        tribunal.tribunal_3_id::uuid
+      FROM public.proyectos p
+      INNER JOIN public.defensas d ON p.id = d.proyecto_id
+      LEFT JOIN (
+        SELECT 
+          proyecto_id,
+          MAX(CASE WHEN rn = 1 THEN docentes_id::text END)::uuid AS tribunal_1_id,
+          MAX(CASE WHEN rn = 2 THEN docentes_id::text END)::uuid AS tribunal_2_id,
+          MAX(CASE WHEN rn = 3 THEN docentes_id::text END)::uuid AS tribunal_3_id
+        FROM (
+          SELECT 
+            proyecto_id,
+            docentes_id,
+            ROW_NUMBER() OVER (PARTITION BY proyecto_id ORDER BY docentes_id) AS rn
+          FROM public.proyecto_tribunal
+        ) sub
+        GROUP BY proyecto_id
+      ) tribunal ON p.id = tribunal.proyecto_id
+      WHERE d.fecha BETWEEN $1 AND $2;
+    `, [fechaInicio, fechaFin]);
+
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+
+    res.setHeader('Content-disposition', 'attachment; filename=reporte_proyectos.pdf');
+    res.setHeader('Content-type', 'application/pdf');
+    doc.pipe(res);
+
+    const logoPath = path.join(__dirname, 'logo.png');
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 40, 30, { width: 60 });
+    }
+
+    doc.fontSize(18).text('Reporte de Proyectos', 110, 40, { align: 'left' });
+    doc.fontSize(10).text(`Fecha: ${new Date().toLocaleDateString()}`, 110, 65);
+    doc.moveDown(2);
+
+    const tableTop = 120;
+    const itemHeight = 20;
+    const colX = [40, 180, 370, 460];
+
+    doc
+      .fontSize(9)
+      .text('Participante', colX[0], tableTop)
+      .text('Nombre del Proyecto de Grado', colX[1], tableTop)
+      .text('Tutor', colX[2], tableTop)
+      .text('Tribunales', colX[3], tableTop);
+
+    doc.moveTo(40, tableTop + 18).lineTo(550, tableTop + 18).stroke();
+
+    const usersData = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "../data/users.json"), "utf8")
+    );
+    let y = tableTop + 25;
+
+    resultado.forEach((proyecto) => {
+      const tutor = usersData.find(
+        (user) => user.id === proyecto.tutor_id && user.role === "docente"
+      );
+      const estudiante = usersData.find(
+        (user) => user.id === proyecto.estudiante_id && user.role === "estudiante"
+      );
+      const docente1 = usersData.find(
+        (user) => user.id === proyecto.tribunal_1_id && user.role === "docente"
+      );
+      const docente2 = usersData.find(
+        (user) => user.id === proyecto.tribunal_2_id && user.role === "docente"
+      );
+      const docente3 = usersData.find(
+        (user) => user.id === proyecto.tribunal_3_id && user.role === "docente"
+      );
+
+      const tribunales = [
+        docente1?.fullName || 'N/A',
+        docente2?.fullName || 'N/A',
+        docente3?.fullName || 'N/A',
+      ].join(', ');
+
+
+      const startY = y;
+
+
+      const maxWidth = [130, 180, 90, 120];
+
+
+      doc.fontSize(9);
+      doc.text(estudiante?.fullName || '---', colX[0], y, { width: maxWidth[0] });
+      doc.text(proyecto.titulo || '---', colX[1], y, { width: maxWidth[1], continued: false });
+      doc.text(tutor?.fullName || '---', colX[2], y, { width: maxWidth[2] });
+      doc.text(tribunales, colX[3], y, { width: maxWidth[3] });
+
+
+      const heights = [
+        doc.heightOfString(estudiante?.fullName || '---', { width: maxWidth[0] }),
+        doc.heightOfString(proyecto.titulo || '---', { width: maxWidth[1] }),
+        doc.heightOfString(tutor?.fullName || '---', { width: maxWidth[2] }),
+        doc.heightOfString(tribunales, { width: maxWidth[3] }),
+      ];
+      const maxHeight = Math.max(...heights);
+
+      y += maxHeight + 5;
+    });
+
+
+    const footerText = 'Generado por el sistema';
+
+    const drawFooter = () => {
+      const footerY = doc.page.height - 30;
+      doc.fontSize(9)
+        .fillColor('gray')
+        .text(footerText, 40, footerY, {
+          align: 'right',
+          width: doc.page.width - 10,
+        });
+    };
+
+
+    drawFooter();
+
+    doc.on('pageAdded', drawFooter);
+
+    doc.end();
+  } catch (error) {
+    console.error('Error al generar PDF:', error);
+    res.status(500).send('Error al generar el PDF');
+  }
+};
+// 12. Listar los datos para reportes
+exports.listarProyectoParaReportes = async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+  
+    if (!fechaInicio || !fechaFin) {
+      return res.status(400).json({ error: 'Debe proporcionar fechaInicio y fechaFin' });
+    }
+
+    const { rows: resultado } = await db.query(`
+      SELECT 
+        p.titulo,
+        p.estudiante_id,
+        p.tipotutoria,
+        p.tutor_id,
+        tribunal.tribunal_1_id::uuid,
+        tribunal.tribunal_2_id::uuid,
+        tribunal.tribunal_3_id::uuid
+      FROM public.proyectos p
+      INNER JOIN public.defensas d ON p.id = d.proyecto_id
+      LEFT JOIN (
+        SELECT 
+          proyecto_id,
+          MAX(CASE WHEN rn = 1 THEN docentes_id::text END)::uuid AS tribunal_1_id,
+          MAX(CASE WHEN rn = 2 THEN docentes_id::text END)::uuid AS tribunal_2_id,
+          MAX(CASE WHEN rn = 3 THEN docentes_id::text END)::uuid AS tribunal_3_id
+        FROM (
+          SELECT 
+            proyecto_id,
+            docentes_id,
+            ROW_NUMBER() OVER (PARTITION BY proyecto_id ORDER BY docentes_id) AS rn
+          FROM public.proyecto_tribunal
+        ) sub
+        GROUP BY proyecto_id
+      ) tribunal ON p.id = tribunal.proyecto_id
+      WHERE d.fecha BETWEEN $1 AND $2;
+    `, [fechaInicio, fechaFin]);
+    const usersData = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "../data/users.json"), "utf8")
+    );
+    const proyectosConDetalles = resultado.map((proyecto) => {
+      const tutor = usersData.find(
+        (user) => user.id === proyecto.tutor_id && user.role === "docente"
+      );
+      const estudiante = usersData.find(
+        (user) => user.id === proyecto.estudiante_id && user.role === "estudiante"
+      );
+      const docente1 = usersData.find(
+        (user) => user.id === proyecto.tribunal_1_id && user.role === "docente"
+      );
+      const docente2 = usersData.find(
+        (user) => user.id === proyecto.tribunal_2_id && user.role === "docente"
+      );
+      const docente3 = usersData.find(
+        (user) => user.id === proyecto.tribunal_3_id && user.role === "docente"
+      );
+
+      return {
+        titulo: proyecto.titulo,
+        estudiante: estudiante?.fullName || 'N/A',
+        tutor: tutor?.fullName || 'N/A',
+        tipotutoria: proyecto.tipotutoria,
+        tribunales: [
+          {
+            id: proyecto.tribunal_1_id,
+            fullName: docente1?.fullName || 'N/A'
+          },
+          {
+            id: proyecto.tribunal_2_id,
+            fullName: docente2?.fullName || 'N/A'
+          },
+          {
+            id: proyecto.tribunal_3_id,
+            fullName: docente3?.fullName || 'N/A'
+          }
+        ]
+      };
+    });
+
+    return res.json(proyectosConDetalles);
+
+  } catch (error) {
+    console.error('Error al listar los datos para el reporte:', error);
+    res.status(500).send('Error al listar los datos para el reporte');
+  }
+};
+
+
 

@@ -45,5 +45,4 @@ router.post("/registrar-borrador-proyecto", auth, controller.registrarEvaluacion
 router.get("/proyectos-aprobador-borrador", auth, controller.listarProyectosAprobadorBorrador);
 //lista proyecto historial
 router.get("/lista-proyecto-historial", auth, controller.listarHistorialProyecto);
-
 module.exports = router;

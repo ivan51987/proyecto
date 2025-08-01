@@ -14,6 +14,8 @@ router.post("/registrar-defensa", auth, directorController.registrarDefensa);
 router.get("/listar-defensas-programadas", auth, directorController.listarDefensasProgramadas);
 router.get("/listar-proyectos-para-seguimiento", auth, directorController.listaSeguimientoProyectos);
 router.get("/listar-historico-proyectos", auth, directorController.listaHistoricoProyectos);
-
+//reportes
+router.get("/reporte-proyecto", auth, directorController.generarReporteProyectos);
+router.get("/listar-datos-reporte-proyecto", auth, directorController.listarProyectoParaReportes);
 
 module.exports = router;
